@@ -5,7 +5,7 @@ type (
 		Layers    []Layer
 		ErrorFunc ErrorFunc
 	}
-	ErrorFunc func(target, actual *Data) float64
+	ErrorFunc func(target, actual Data) float64
 )
 
 func (m *Model) Init() {
@@ -19,33 +19,33 @@ func (m *Model) Init() {
 	}
 }
 
-func (m *Model) Feed(input, output *Data) {
+func (m *Model) Feed(input, output Data) {
 	m.Forward(input)
 	err := m.CalcError(output)
 	m.Backward(err, output)
 	m.Learn()
 }
 
-func (m *Model) Test(input, output *Data) float64 {
+func (m *Model) Test(input, output Data) float64 {
 	m.Forward(input)
 	return m.CalcError(output)
 }
 
-func (m *Model) Predict(input *Data) *Data {
+func (m *Model) Predict(input Data) Data {
 	m.Forward(input)
 	return m.lastLayer().GetOutput()
 }
 
-func (m *Model) Forward(input *Data) {
+func (m *Model) Forward(input Data) {
 	m.Layers[0].Forward(input)
 }
 
-func (m *Model) CalcError(target *Data) float64 {
+func (m *Model) CalcError(target Data) float64 {
 	actual := m.lastLayer().GetOutput()
 	return m.ErrorFunc(target, actual)
 }
 
-func (m *Model) Backward(error float64, target *Data) {
+func (m *Model) Backward(error float64, target Data) {
 	m.lastLayer().Backward(error, target)
 }
 

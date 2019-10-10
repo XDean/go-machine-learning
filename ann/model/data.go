@@ -3,33 +3,47 @@ package model
 import "fmt"
 
 type Data struct {
-	Len   uint
-	Next  []*Data
-	Value float64
+	Len      uint
+	Children []Data
+	Value    float64
 }
 
-func NewData(l uint, ls ...uint) *Data {
-	d := &Data{
-		Len:  l,
-		Next: make([]*Data, l),
-	}
+func NewData(ls ...uint) Data {
 	if len(ls) == 0 {
-		for i := range d.Next {
-			d.Next[i] = &Data{Len: 0}
-		}
-	} else {
-		for i := range d.Next {
-			d.Next[i] = NewData(ls[0], ls[1:]...)
-		}
+		return Data{Len: 0}
+	}
+	d := Data{
+		Len:      ls[0],
+		Children: make([]Data, ls[0]),
+	}
+	for i := range d.Children {
+		d.Children[i] = NewData(ls[1:]...)
 	}
 	return d
 }
 
-func (d *Data) IsLeaf() bool {
+func (d Data) IsLeaf() bool {
 	return d.Len == 0
 }
 
-func (d *Data) GetValue(index uint, indexes ...uint) float64 {
+func (d Data) SetValue(value float64, indexes ...uint) {
+	if len(indexes) == 0 {
+		if d.IsLeaf() {
+			d.Value = value
+		} else {
+			panic("Data is not leaf, use GetData")
+		}
+	} else {
+		if indexes[0] < d.Len {
+			next := d.Children[indexes[0]]
+			next.SetValue(value, indexes[1:]...)
+		} else {
+			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
+		}
+	}
+}
+
+func (d Data) GetValue(indexes ...uint) float64 {
 	if len(indexes) == 0 {
 		if d.IsLeaf() {
 			return d.Value
@@ -37,48 +51,82 @@ func (d *Data) GetValue(index uint, indexes ...uint) float64 {
 			panic("Data is not leaf, use GetData")
 		}
 	} else {
-		if index < d.Len {
-			next := d.Next[index]
-			return next.GetValue(indexes[0], indexes[1:]...)
+		if indexes[0] < d.Len {
+			next := d.Children[indexes[0]]
+			return next.GetValue(indexes[1:]...)
 		} else {
-			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, index))
+			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }
 
-func (d *Data) GetData(index uint, indexes ...uint) *Data {
+func (d Data) GetData(indexes ...uint) Data {
 	if len(indexes) == 0 {
-		if d.IsLeaf() {
-			panic("Data is leaf, use GetValue")
-		} else {
-			return d.Next[index]
-		}
+		return d
 	} else {
-		if index < d.Len {
-			next := d.Next[index]
-			return next.GetData(indexes[0], indexes[1:]...)
+		if indexes[0] < d.Len {
+			next := d.Children[indexes[0]]
+			return next.GetData(indexes[1:]...)
 		} else {
-			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, index))
+			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }
 
-func (d *Data) GetDimension() []uint {
+func (d Data) GetSize() []uint {
 	if d.Len == 0 {
 		return nil
 	} else {
-		return append([]uint{d.Len}, d.Next[0].GetDimension()...)
+		return append([]uint{d.Len}, d.Children[0].GetSize()...)
 	}
 }
 
-func (d *Data) ForEach(f func(index []uint, value *float64)) {
-	if d.IsLeaf() {
-		f(nil, &d.Value)
+func (d Data) GetCount() uint {
+	if d.Len == 0 {
+		return 1
 	} else {
-		for i, v := range d.Next {
-			v.ForEach(func(index []uint, value *float64) {
+		return d.Len * d.Children[0].GetCount()
+	}
+}
+
+func (d Data) GetDim() uint {
+	if d.Len == 0 {
+		return 0
+	} else {
+		return 1 + d.Children[0].GetDim()
+	}
+}
+
+func (d Data) ForEach(f func(index []uint, value float64)) {
+	if d.IsLeaf() {
+		f(nil, d.Value)
+	} else {
+		for i, v := range d.Children {
+			v.ForEach(func(index []uint, value float64) {
 				f(append([]uint{uint(i)}, index...), value)
 			})
 		}
+	}
+}
+
+func (d Data) ToDim(dim int) Data {
+	size := d.GetSize()
+	if len(size) == dim {
+		return d
+	}
+	if dim == 1 {
+		result := NewData(d.GetCount())
+		i := 0
+		d.ForEach(func(index []uint, value float64) {
+			result.Children[i].Value = value
+			i++
+		})
+		return result
+	} else {
+		result := NewData(d.Len)
+		for i, v := range d.Children {
+			result.Children[i] = v.ToDim(dim - 1)
+		}
+		return result
 	}
 }
