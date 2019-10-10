@@ -26,21 +26,21 @@ func (d Data) IsLeaf() bool {
 	return d.Len == 0
 }
 
-func (d Data) SetValue(value float64, indexes ...uint) {
+func (d Data) SetValue(value float64, indexes ...uint) Data {
 	if len(indexes) == 0 {
 		if d.IsLeaf() {
 			d.Value = value
 		} else {
-			panic("Data is not leaf, use GetData")
+			panic("This is not leaf, can't set")
 		}
 	} else {
 		if indexes[0] < d.Len {
-			next := d.Children[indexes[0]]
-			next.SetValue(value, indexes[1:]...)
+			d.Children[indexes[0]] = d.Children[indexes[0]].SetValue(value, indexes[1:]...)
 		} else {
 			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
+	return d
 }
 
 func (d Data) GetValue(indexes ...uint) float64 {
@@ -48,7 +48,7 @@ func (d Data) GetValue(indexes ...uint) float64 {
 		if d.IsLeaf() {
 			return d.Value
 		} else {
-			panic("Data is not leaf, use GetData")
+			panic("This is not leaf, use GetData")
 		}
 	} else {
 		if indexes[0] < d.Len {
@@ -75,7 +75,7 @@ func (d Data) GetData(indexes ...uint) Data {
 
 func (d Data) GetSize() []uint {
 	if d.Len == 0 {
-		return nil
+		return []uint{}
 	} else {
 		return append([]uint{d.Len}, d.Children[0].GetSize()...)
 	}
@@ -121,6 +121,11 @@ func (d Data) ToDim(dim int) Data {
 			result.Children[i].Value = value
 			i++
 		})
+		return result
+	} else if d.IsLeaf() {
+		result := NewData(1)
+		result.Children[0].Value = d.Value
+		result.Children[0] = result.Children[0].ToDim(dim - 1)
 		return result
 	} else {
 		result := NewData(d.Len)
