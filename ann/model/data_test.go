@@ -72,3 +72,7 @@ func TestData_ToDim(t *testing.T) {
 
 	assert.Equal(t, d3t2, d3t2.ToDim(2))
 }
+
+func TestData_Fill(t *testing.T) {
+	assert.Equal(t, 5.0, NewData().Fill(5).Value)
+}

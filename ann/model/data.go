@@ -26,6 +26,13 @@ func (d Data) IsLeaf() bool {
 	return d.Len == 0
 }
 
+func (d Data) Fill(value float64) Data {
+	d.ForEach(func(index []uint, _ float64) {
+		d = d.SetValue(value, index...)
+	})
+	return d
+}
+
 func (d Data) SetValue(value float64, indexes ...uint) Data {
 	if len(indexes) == 0 {
 		if d.IsLeaf() {
