@@ -142,3 +142,11 @@ func (d Data) ToDim(dim int) Data {
 		return result
 	}
 }
+
+func (d Data) Identity2D() Data {
+	result := NewData(append(d.GetSize(), d.GetSize()...)...)
+	d.ForEach(func(index []uint, value float64) {
+		result.SetValue(1, append(index, index...)...)
+	})
+	return result
+}

@@ -29,12 +29,12 @@ func (s *StartLayer) GetOutput() Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetWeight() Data {
+func (s *StartLayer) GetErrorToOutput() Data {
 	return NewData()
 }
 
-func (s *StartLayer) GetError() Data {
-	return NewData()
+func (s *StartLayer) GetOutputToInput() Data {
+	return s.Input.Identity2D()
 }
 
 func (s *StartLayer) GetInputSize() []uint {
@@ -51,9 +51,9 @@ type EndLayer struct {
 	ErrorFunc ErrorFunc
 	Target    Data
 
-	Input        Data
-	TotalError   float64 // E
-	PartialError Data    // ∂E/∂a
+	Input         Data
+	TotalError    float64 // E
+	ErrorToOutput Data    // ∂E/∂a
 }
 
 func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
@@ -62,7 +62,7 @@ func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
 
 func (e *EndLayer) Forward() {
 	e.Input = e.Prev.GetOutput()
-	e.TotalError, e.PartialError = e.ErrorFunc(e.Target, e.Input)
+	e.TotalError, e.ErrorToOutput = e.ErrorFunc(e.Target, e.Input)
 }
 
 func (e *EndLayer) Backward() {
@@ -81,12 +81,12 @@ func (e *EndLayer) GetOutput() Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetWeight() Data {
-	return e.Input
+func (e *EndLayer) GetErrorToOutput() Data {
+	return e.ErrorToOutput
 }
 
-func (e *EndLayer) GetError() Data {
-	return e.PartialError
+func (e *EndLayer) GetOutputToInput() Data {
+	return e.Input.Identity2D()
 }
 
 func (e *EndLayer) GetInputSize() []uint {

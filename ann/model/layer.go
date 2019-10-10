@@ -6,10 +6,10 @@ type (
 		Backward() // call prev
 		Learn()    // call prev
 
-		GetInput() Data
-		GetOutput() Data
-		GetWeight() Data
-		GetError() Data
+		GetInput() Data         // i (prev output)
+		GetOutput() Data        // o
+		GetErrorToOutput() Data // ∂E / ∂a [output]
+		GetOutputToInput() Data // ∂a / ∂i [output, input]
 
 		GetInputSize() []uint // nil means no constraint
 		GetOutputSize() []uint
