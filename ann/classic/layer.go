@@ -7,15 +7,15 @@ type FullLayer struct {
 	Size uint
 }
 
-func (f *FullLayer) Forward(input *Data) (output *Data) {
-	panic("implement me")
+func (f *FullLayer) Forward(input *Data) {
+	f.Next.Forward(f.GetOutput())
 }
 
-func (f *FullLayer) Backward(nextError *Data) (myError *Data) {
-	panic("implement me")
+func (f *FullLayer) Backward(Error float64, Target *Data) {
+	f.Prev.Backward(Error, Target)
 }
 
-func (f *FullLayer) Learn(ratio float64) {
+func (f *FullLayer) Learn() {
 	panic("implement me")
 }
 

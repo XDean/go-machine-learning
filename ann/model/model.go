@@ -1,36 +1,59 @@
 package model
 
-type Model struct {
-	Layers []Layer
-	Error  float64
+type (
+	Model struct {
+		Layers    []Layer
+		ErrorFunc ErrorFunc
+	}
+	ErrorFunc func(target, actual *Data) float64
+)
+
+func (m *Model) Init() {
+	for i, l := range m.Layers {
+		if i > 0 {
+			l.SetPrev(m.Layers[i-1])
+		}
+		if i < len(m.Layers)-1 {
+			l.SetNext(m.Layers[i+1])
+		}
+	}
 }
 
 func (m *Model) Feed(input, output *Data) {
 	m.Forward(input)
-	m.CalcError(output)
-	m.Backward(output)
+	err := m.CalcError(output)
+	m.Backward(err, output)
 	m.Learn()
 }
 
 func (m *Model) Test(input, output *Data) float64 {
 	m.Forward(input)
-	m.CalcError(output)
-	return m.Error
+	return m.CalcError(output)
 }
 
 func (m *Model) Predict(input *Data) *Data {
 	m.Forward(input)
-	return m.Layers[len(m.Layers)-1].GetOutput()
+	return m.lastLayer().GetOutput()
 }
 
 func (m *Model) Forward(input *Data) {
+	m.Layers[0].Forward(input)
 }
 
-func (m *Model) CalcError(target *Data) {
+func (m *Model) CalcError(target *Data) float64 {
+	actual := m.lastLayer().GetOutput()
+	return m.ErrorFunc(target, actual)
 }
 
-func (m *Model) Backward(target *Data) {
+func (m *Model) Backward(error float64, target *Data) {
+	m.lastLayer().Backward(error, target)
 }
 
 func (m *Model) Learn() {
+	m.lastLayer().Learn()
+}
+
+// Private
+func (m *Model) lastLayer() Layer {
+	return m.Layers[len(m.Layers)-1]
 }
