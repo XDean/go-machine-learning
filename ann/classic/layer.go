@@ -71,7 +71,7 @@ func (f *FullLayer) Forward() {
 	f.Next.Forward()
 }
 
-func (f *FullLayer) Backward(Error float64, Target Data) {
+func (f *FullLayer) Backward(error float64, target Data) {
 	if f.Next == nil {
 		f.Error.ForEach(func(index []uint, value float64) {
 			//i, j := index[0], index[1]
@@ -81,7 +81,7 @@ func (f *FullLayer) Backward(Error float64, Target Data) {
 
 	}
 
-	f.Prev.Backward(Error, Target)
+	f.Prev.Backward(error, target)
 }
 
 func (f *FullLayer) Learn() {
@@ -94,6 +94,10 @@ func (f *FullLayer) GetInput() Data {
 
 func (f *FullLayer) GetOutput() Data {
 	return f.Output
+}
+
+func (f *FullLayer) GetWeight() Data {
+	return f.Weight
 }
 
 func (f *FullLayer) GetError() Data {

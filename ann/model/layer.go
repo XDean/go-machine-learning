@@ -3,11 +3,12 @@ package model
 type (
 	Layer interface {
 		Forward()                            // call next
-		Backward(Error float64, Target Data) // call prev
+		Backward(error float64, target Data) // call prev
 		Learn()                              // call prev
 
 		GetInput() Data
 		GetOutput() Data
+		GetWeight() Data
 		GetError() Data
 
 		GetInputSize() []uint // nil means no constraint
