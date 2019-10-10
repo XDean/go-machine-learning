@@ -4,7 +4,7 @@ type (
 	Layer interface {
 		Forward(input *Data) (output *Data)
 		Backward(nextError *Data) (myError *Data)
-		Learn(ratio float64)
+		Learn()
 
 		GetInput() *Data
 		GetOutput() *Data
