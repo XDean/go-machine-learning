@@ -2,7 +2,7 @@ package model
 
 type (
 	Layer interface {
-		Forward(input Data)                  // call next
+		Forward()                            // call next
 		Backward(Error float64, Target Data) // call prev
 		Learn()                              // call prev
 

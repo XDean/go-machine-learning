@@ -5,7 +5,6 @@ type (
 		Layers    []Layer
 		ErrorFunc ErrorFunc
 	}
-	ErrorFunc func(target, actual Data) float64
 )
 
 func (m *Model) Init() {
@@ -37,7 +36,7 @@ func (m *Model) Predict(input Data) Data {
 }
 
 func (m *Model) Forward(input Data) {
-	m.Layers[0].Forward(input)
+	m.Layers[0].Forward()
 }
 
 func (m *Model) CalcError(target Data) float64 {
