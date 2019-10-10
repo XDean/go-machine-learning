@@ -13,7 +13,7 @@ func (s *StartLayer) Forward() {
 	s.Next.Forward()
 }
 
-func (s *StartLayer) Backward(error float64, target Data) {
+func (s *StartLayer) Backward() {
 	// do nothing
 }
 
@@ -47,22 +47,26 @@ func (s *StartLayer) GetOutputSize() []uint {
 
 type EndLayer struct {
 	BaseLayer
-	Input      Data
-	TotalError float64 // E
-	ErrorFunc  ErrorFunc
-	Error      Data // ∂E/∂a
+
+	ErrorFunc ErrorFunc
+	Target    Data
+
+	Input        Data
+	TotalError   float64 // E
+	PartialError Data    // ∂E/∂a
 }
 
-func NewEndLayer(errorFunc ErrorFunc) *EndLayer {
-	return &EndLayer{ErrorFunc: errorFunc}
+func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
+	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
 func (e *EndLayer) Forward() {
 	e.Input = e.Prev.GetOutput()
+	e.TotalError, e.PartialError = e.ErrorFunc(e.Target, e.Input)
 }
 
-func (e *EndLayer) Backward(error float64, target Data) {
-	panic("implement me")
+func (e *EndLayer) Backward() {
+	e.Prev.Backward()
 }
 
 func (e *EndLayer) Learn() {
@@ -82,7 +86,7 @@ func (e *EndLayer) GetWeight() Data {
 }
 
 func (e *EndLayer) GetError() Data {
-	return e.Error
+	return e.PartialError
 }
 
 func (e *EndLayer) GetInputSize() []uint {
