@@ -47,8 +47,16 @@ func (m *Model) Feed(input, target base.Data) Result {
 	end := m.newEnd(target)
 
 	start.Forward()
+	m.forward()
+	end.Forward()
+
 	end.Backward()
+	m.backward()
+	start.Backward()
+
 	end.Learn()
+	m.learn()
+	start.Learn()
 
 	return end.ToResult()
 }
@@ -58,15 +66,20 @@ func (m *Model) Test(input, target base.Data) Result {
 	end := m.newEnd(target)
 
 	start.Forward()
+	m.forward()
+	end.Forward()
+
 	return end.ToResult()
 }
 
 func (m *Model) Predict(input base.Data) base.Data {
 	start := m.newStart(input)
 	start.Forward()
+	m.forward()
 	return m.lastLayer().GetOutput()
 }
 
+// Persistent
 func (m *Model) SaveToFile(file string) (err error) {
 	defer base.RecoverNoError(&err)
 	base.NoError(os.MkdirAll(filepath.Dir(file), 0755))
@@ -145,4 +158,34 @@ func (m *Model) newEnd(target base.Data) *EndLayer {
 	end.SetPrev(m.lastLayer())
 	m.lastLayer().SetNext(end)
 	return end
+}
+
+func (m *Model) forLayer(f func(int, Layer)) {
+	for i, v := range m.Layers {
+		f(i, v)
+	}
+}
+
+func (m *Model) forLayerReverse(f func(int, Layer)) {
+	for i := len(m.Layers); i > 0; i-- {
+		f(i-1, m.Layers[i-1])
+	}
+}
+
+func (m *Model) forward() {
+	m.forLayer(func(i int, layer Layer) {
+		layer.Forward()
+	})
+}
+
+func (m *Model) backward() {
+	m.forLayerReverse(func(i int, layer Layer) {
+		layer.Backward()
+	})
+}
+
+func (m *Model) learn() {
+	m.forLayerReverse(func(i int, layer Layer) {
+		layer.Learn()
+	})
 }

@@ -43,7 +43,7 @@ type (
 var (
 	DefaultConfig = FullLayerConfig{
 		Size:          10,
-		Activation:    ReLU{},
+		Activation:    Sigmoid{},
 		LearningRatio: 0.1,
 		WeightInit:    RandomInit{},
 	}
@@ -97,20 +97,16 @@ func (f *FullLayer) Forward() {
 			f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
 		})
 	})
-
-	f.Next.Forward()
 }
 
 func (f *FullLayer) Backward() {
 	f.ErrorToOutput = ErrorToInput(f.Next) // next layer's input is this layer's output
-	f.Prev.Backward()
 }
 
 func (f *FullLayer) Learn() {
 	f.Weight.ForEach(func(index []uint, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
 	})
-	f.Prev.Learn()
 }
 
 func (f *FullLayer) GetInput() base.Data {

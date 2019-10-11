@@ -42,11 +42,11 @@ func (e *EndLayer) Forward() {
 }
 
 func (e *EndLayer) Backward() {
-	e.Prev.Backward()
+	// do nothing
 }
 
 func (e *EndLayer) Learn() {
-	e.Prev.Learn()
+	// do nothing
 }
 
 func (e *EndLayer) GetInput() base.Data {

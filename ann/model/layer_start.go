@@ -31,7 +31,7 @@ func (s *StartLayer) Load(reader *gob.Decoder) error {
 }
 
 func (s *StartLayer) Forward() {
-	s.Next.Forward()
+	// do nothing
 }
 
 func (s *StartLayer) Backward() {
