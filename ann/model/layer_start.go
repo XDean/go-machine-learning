@@ -1,5 +1,7 @@
 package model
 
+import "encoding/gob"
+
 type StartLayer struct {
 	BaseLayer
 	Input Data
@@ -7,6 +9,18 @@ type StartLayer struct {
 
 func NewStartLayer(input Data) *StartLayer {
 	return &StartLayer{Input: input}
+}
+
+func (s *StartLayer) Name() string {
+	return "Start Layer"
+}
+
+func (s *StartLayer) Save(writer *gob.Encoder) error {
+	panic("no save")
+}
+
+func (s *StartLayer) Load(reader *gob.Decoder) error {
+	panic("no load")
 }
 
 func (s *StartLayer) Forward() {
@@ -43,4 +57,8 @@ func (s *StartLayer) GetInputSize() []uint {
 
 func (s *StartLayer) GetOutputSize() []uint {
 	return s.Input.GetSize()
+}
+
+func (s *StartLayer) SetPrev(l Layer) {
+	panic("start layer must has no prev")
 }

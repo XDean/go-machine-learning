@@ -1,5 +1,7 @@
 package model
 
+import "encoding/gob"
+
 type EndLayer struct {
 	BaseLayer
 
@@ -13,6 +15,18 @@ type EndLayer struct {
 
 func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
+}
+
+func (e *EndLayer) Name() string {
+	return "End Layer"
+}
+
+func (e *EndLayer) Save(writer *gob.Encoder) error {
+	panic("no save")
+}
+
+func (e *EndLayer) Load(reader *gob.Decoder) error {
+	panic("no load")
 }
 
 func (e *EndLayer) Forward() {
@@ -58,4 +72,8 @@ func (e *EndLayer) ToResult() Result {
 		Target:     e.Target,
 		TotalError: e.TotalError,
 	}
+}
+
+func (e *EndLayer) SetNext(l Layer) {
+	panic("last layer must have no next")
 }

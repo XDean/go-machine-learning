@@ -1,7 +1,13 @@
 package model
 
+import (
+	"encoding/gob"
+)
+
 type (
 	Layer interface {
+		Name() string
+
 		Forward()  // call next
 		Backward() // call prev
 		Learn()    // call prev
@@ -18,6 +24,9 @@ type (
 		SetNext(Layer)
 		GetPrev() Layer
 		GetNext() Layer
+
+		Save(writer *gob.Encoder) error
+		Load(reader *gob.Decoder) error
 	}
 
 	BaseLayer struct {

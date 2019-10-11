@@ -1,8 +1,17 @@
 package classic
 
 import (
+	"encoding/gob"
 	. "github.com/XDean/go-machine-learning/ann/model"
 )
+
+const FULL_CONNECT = "Full Connect Layer"
+
+func init() {
+	RegisterLayer(FULL_CONNECT, func() Layer {
+		return NewFullLayer(FullLayerConfig{Size: 1})
+	})
+}
 
 type (
 	FullLayer struct {
@@ -58,6 +67,10 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 		LearningRatio: config.LearningRatio,
 		WeightInit:    config.WeightInit,
 	}
+}
+
+func (f *FullLayer) Name() string {
+	return FULL_CONNECT
 }
 
 func (f *FullLayer) Forward() {
@@ -121,4 +134,12 @@ func (f *FullLayer) GetOutputSize() []uint {
 func (f *FullLayer) SetPrev(l Layer) {
 	f.BaseLayer.SetPrev(l)
 	f.Weight = f.WeightInit(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
+}
+
+func (f *FullLayer) Save(writer *gob.Encoder) error {
+	panic("implement me")
+}
+
+func (f *FullLayer) Load(reader *gob.Decoder) error {
+	panic("implement me")
 }

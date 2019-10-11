@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/gob"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -70,7 +71,60 @@ func (m *Model) SaveToFile(file string) error {
 }
 
 func (m *Model) Save(writer io.Writer) error {
-	//encoder := gob.NewEncoder(writer)
+	encoder := gob.NewEncoder(writer)
+	err := encoder.Encode(len(m.Layers))
+	if err != nil {
+		return err
+	}
+	for _, v := range m.Layers {
+		err := encoder.Encode(v.Name())
+		if err != nil {
+			return err
+		}
+		err = v.Save(encoder)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Model) LoadFromFile(file string) error {
+	reader, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+	return m.Load(reader)
+}
+
+func (m *Model) Load(reader io.Reader) error {
+	decoder := gob.NewDecoder(reader)
+	layers := make([]Layer, 0)
+	count := 0
+	err := decoder.Decode(&count)
+	if err != nil {
+		return err
+	}
+	for ; count > 0; count-- {
+		name := ""
+		err := decoder.Decode(&name)
+		if err != nil {
+			return err
+		}
+		if con, ok := constructors[name]; ok {
+			layer := con()
+			err := layer.Load(decoder)
+			if err != nil {
+				return err
+			}
+			layers = append(layers, layer)
+		} else {
+			return errors.New("Unknown layer type: " + name)
+		}
+	}
+	m.Layers = layers
+	m.Init()
 	return nil
 }
 
