@@ -51,3 +51,11 @@ func (e *EndLayer) GetInputSize() []uint {
 func (e *EndLayer) GetOutputSize() []uint {
 	return e.Input.GetSize()
 }
+
+func (e *EndLayer) ToResult() Result {
+	return Result{
+		Output:     e.Input,
+		Target:     e.Target,
+		TotalError: e.TotalError,
+	}
+}
