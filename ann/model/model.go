@@ -2,7 +2,8 @@ package model
 
 import (
 	"encoding/gob"
-	"errors"
+	"fmt"
+	"github.com/XDean/go-machine-learning/ann/model/persistent"
 	"io"
 	"os"
 	"path/filepath"
@@ -57,71 +58,51 @@ func (m *Model) Predict(input Data) Data {
 	return m.lastLayer().GetOutput()
 }
 
-func (m *Model) SaveToFile(file string) error {
-	err := os.MkdirAll(filepath.Dir(file), 0755)
-	if err != nil {
-		return err
-	}
+func (m *Model) SaveToFile(file string) (err error) {
+	defer RecoverNoError(&err)
+	NoError(os.MkdirAll(filepath.Dir(file), 0755))
 	writer, err := os.Create(file)
-	if err != nil {
-		return err
-	}
+	NoError(err)
 	defer writer.Close()
 	return m.Save(writer)
 }
 
-func (m *Model) Save(writer io.Writer) error {
+func (m *Model) Save(writer io.Writer) (err error) {
+	defer RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
-	err := encoder.Encode(len(m.Layers))
-	if err != nil {
-		return err
-	}
+	NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
-		err := encoder.Encode(v.Name())
-		if err != nil {
-			return err
-		}
-		err = v.Save(encoder)
-		if err != nil {
-			return err
-		}
+		NoError(encoder.Encode(v.Name()))
+		NoError(v.Save(encoder))
 	}
 	return nil
 }
 
-func (m *Model) LoadFromFile(file string) error {
+func (m *Model) LoadFromFile(file string) (err error) {
+	defer RecoverNoError(&err)
 	reader, err := os.Open(file)
-	if err != nil {
-		return err
-	}
+	NoError(err)
 	defer reader.Close()
 	return m.Load(reader)
 }
 
-func (m *Model) Load(reader io.Reader) error {
+func (m *Model) Load(reader io.Reader) (err error) {
+	defer RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
 	layers := make([]Layer, 0)
 	count := 0
-	err := decoder.Decode(&count)
-	if err != nil {
-		return err
-	}
+	NoError(decoder.Decode(&count))
 	for ; count > 0; count-- {
 		name := ""
-		err := decoder.Decode(&name)
-		if err != nil {
-			return err
+		NoError(decoder.Decode(&name))
+		bean, err := persistent.New(name)
+		NoError(err)
+		layer, ok := bean.(Layer)
+		if !ok {
+			return fmt.Errorf("Bad type: expect Layer, but %T", bean)
 		}
-		if con, ok := constructors[name]; ok {
-			layer := con()
-			err := layer.Load(decoder)
-			if err != nil {
-				return err
-			}
-			layers = append(layers, layer)
-		} else {
-			return errors.New("Unknown layer type: " + name)
-		}
+		NoError(bean.Load(decoder))
+		layers = append(layers, layer)
 	}
 	m.Layers = layers
 	m.Init()

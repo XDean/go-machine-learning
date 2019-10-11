@@ -3,13 +3,14 @@ package classic
 import (
 	"encoding/gob"
 	. "github.com/XDean/go-machine-learning/ann/model"
+	"github.com/XDean/go-machine-learning/ann/model/persistent"
 )
 
 const FULL_CONNECT = "Full Connect Layer"
 
 func init() {
-	RegisterLayer(FULL_CONNECT, func() Layer {
-		return NewFullLayer(FullLayerConfig{Size: 1})
+	persistent.Register(FULL_CONNECT, func() persistent.Persistent {
+		return NewFullLayer(FullLayerConfig{})
 	})
 }
 
@@ -42,6 +43,7 @@ type (
 
 var (
 	DefaultConfig = FullLayerConfig{
+		Size:          10,
 		Activation:    ReLU,
 		LearningRatio: 0.1,
 		WeightInit:    RandomInit(),
@@ -50,7 +52,7 @@ var (
 
 func NewFullLayer(config FullLayerConfig) *FullLayer {
 	if config.Size == 0 {
-		panic("Size must be specified")
+		config.Size = DefaultConfig.Size
 	}
 	if config.Activation == nil {
 		config.Activation = DefaultConfig.Activation
@@ -136,8 +138,11 @@ func (f *FullLayer) SetPrev(l Layer) {
 	f.Weight = f.WeightInit(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
 }
 
-func (f *FullLayer) Save(writer *gob.Encoder) error {
-	panic("implement me")
+func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
+	defer RecoverNoError(&err)
+	NoError(writer.Encode(f.Size))
+	NoError(writer.Encode(f.Weight))
+	NoError(writer.Encode(f.Bias))
 }
 
 func (f *FullLayer) Load(reader *gob.Decoder) error {

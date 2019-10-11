@@ -26,3 +26,17 @@ func ErrorToInput(l Layer) Data {
 	})
 	return errorToInput
 }
+func RecoverNoError(err *error) {
+	r := recover()
+	if e, ok := r.(error); ok {
+		*err = e
+	} else {
+		panic(r)
+	}
+}
+
+func NoError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

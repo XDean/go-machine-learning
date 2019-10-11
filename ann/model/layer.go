@@ -1,12 +1,10 @@
 package model
 
-import (
-	"encoding/gob"
-)
+import "github.com/XDean/go-machine-learning/ann/model/persistent"
 
 type (
 	Layer interface {
-		Name() string
+		persistent.Persistent
 
 		Forward()  // call next
 		Backward() // call prev
@@ -24,9 +22,6 @@ type (
 		SetNext(Layer)
 		GetPrev() Layer
 		GetNext() Layer
-
-		Save(writer *gob.Encoder) error
-		Load(reader *gob.Decoder) error
 	}
 
 	BaseLayer struct {
