@@ -42,9 +42,9 @@ type (
 var (
 	DefaultConfig = FullLayerConfig{
 		Size:          10,
-		Activation:    ReLU,
+		Activation:    ReLU{},
 		LearningRatio: 0.1,
-		WeightInit:    RandomInit(),
+		WeightInit:    RandomInit{},
 	}
 )
 
@@ -133,7 +133,7 @@ func (f *FullLayer) GetOutputSize() []uint {
 
 func (f *FullLayer) SetPrev(l Layer) {
 	f.BaseLayer.SetPrev(l)
-	f.Weight = f.WeightInit(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
@@ -141,8 +141,33 @@ func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
 	NoError(writer.Encode(f.Size))
 	NoError(writer.Encode(f.Weight))
 	NoError(writer.Encode(f.Bias))
+	NoError(writer.Encode(f.LearningRatio))
+	NoError(persistent.Save(writer, f.Activation))
+	NoError(persistent.Save(writer, f.WeightInit))
+	return nil
 }
 
-func (f *FullLayer) Load(reader *gob.Decoder) error {
-	panic("implement me")
+func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
+	defer RecoverNoError(&err)
+	NoError(reader.Decode(&f.Size))
+	NoError(reader.Decode(&f.Weight))
+	NoError(reader.Decode(&f.Bias))
+	NoError(reader.Decode(&f.LearningRatio))
+
+	bean, err := persistent.Load(reader)
+	NoError(err)
+	if actual, ok := bean.(Activation); ok {
+		f.Activation = actual
+	} else {
+		return persistent.TypeError("Activation", bean)
+	}
+
+	bean, err = persistent.Load(reader)
+	NoError(err)
+	if actual, ok := bean.(WeightInit); ok {
+		f.WeightInit = actual
+	} else {
+		return persistent.TypeError("WeightInit", bean)
+	}
+	return nil
 }

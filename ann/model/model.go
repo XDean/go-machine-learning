@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/XDean/go-machine-learning/ann/model/persistent"
 	"io"
 	"os"
@@ -72,9 +71,9 @@ func (m *Model) Save(writer io.Writer) (err error) {
 	encoder := gob.NewEncoder(writer)
 	NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
-		NoError(encoder.Encode(v.Name()))
-		NoError(v.Save(encoder))
+		NoError(persistent.Save(encoder, v))
 	}
+	NoError(persistent.Save(encoder, m.ErrorFunc))
 	return nil
 }
 
@@ -93,18 +92,24 @@ func (m *Model) Load(reader io.Reader) (err error) {
 	count := 0
 	NoError(decoder.Decode(&count))
 	for ; count > 0; count-- {
-		name := ""
-		NoError(decoder.Decode(&name))
-		bean, err := persistent.New(name)
+		bean, err := persistent.Load(decoder)
 		NoError(err)
 		layer, ok := bean.(Layer)
 		if !ok {
-			return fmt.Errorf("Bad type: expect Layer, but %T", bean)
+			return persistent.TypeError("Layer", bean)
 		}
 		NoError(bean.Load(decoder))
 		layers = append(layers, layer)
 	}
+	bean, err := persistent.Load(decoder)
+	NoError(err)
+
+	errorFunc, ok := bean.(ErrorFunc)
+	if !ok {
+		return persistent.TypeError("ErrorFunc", bean)
+	}
 	m.Layers = layers
+	m.ErrorFunc = errorFunc
 	m.Init()
 	return nil
 }
