@@ -11,6 +11,7 @@ import (
 
 type (
 	Model struct {
+		Name      string
 		Layers    []Layer
 		ErrorFunc ErrorFunc
 	}
@@ -70,6 +71,7 @@ func (m *Model) SaveToFile(file string) (err error) {
 func (m *Model) Save(writer io.Writer) (err error) {
 	defer base.RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
+	base.NoError(encoder.Encode(m.Name))
 	base.NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
 		base.NoError(persistent.Save(encoder, v))
@@ -89,6 +91,7 @@ func (m *Model) LoadFromFile(file string) (err error) {
 func (m *Model) Load(reader io.Reader) (err error) {
 	defer base.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
+	base.NoError(decoder.Decode(&m.Name))
 	layers := make([]Layer, 0)
 	count := 0
 	base.NoError(decoder.Decode(&count))
