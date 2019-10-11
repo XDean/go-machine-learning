@@ -24,6 +24,10 @@ func (e *EndLayer) Name() string {
 	return "End Layer"
 }
 
+func (e *EndLayer) Init() {
+	// do nothing
+}
+
 func (e *EndLayer) Save(writer *gob.Encoder) error {
 	panic("no save")
 }
@@ -42,7 +46,7 @@ func (e *EndLayer) Backward() {
 }
 
 func (e *EndLayer) Learn() {
-	// do nothing
+	e.Prev.Learn()
 }
 
 func (e *EndLayer) GetInput() base.Data {

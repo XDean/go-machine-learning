@@ -14,6 +14,7 @@ type (
 		Name      string
 		Layers    []Layer
 		ErrorFunc ErrorFunc
+		InputSize []uint
 	}
 
 	Result struct {
@@ -24,13 +25,20 @@ type (
 )
 
 func (m *Model) Init() {
+	start := m.newStart(base.NewData(m.InputSize...))
+	end := m.newEnd(base.NewData(m.lastLayer().GetOutputSize()...))
 	for i, l := range m.Layers {
-		if i > 0 {
+		if i == 0 {
+			l.SetPrev(start)
+		} else {
 			l.SetPrev(m.Layers[i-1])
 		}
-		if i < len(m.Layers)-1 {
+		if i == len(m.Layers)-1 {
+			l.SetNext(end)
+		} else {
 			l.SetNext(m.Layers[i+1])
 		}
+		l.Init()
 	}
 }
 
@@ -72,6 +80,7 @@ func (m *Model) Save(writer io.Writer) (err error) {
 	defer base.RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
 	base.NoError(encoder.Encode(m.Name))
+	base.NoError(encoder.Encode(m.InputSize))
 	base.NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
 		base.NoError(persistent.Save(encoder, v))
@@ -92,6 +101,7 @@ func (m *Model) Load(reader io.Reader) (err error) {
 	defer base.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
 	base.NoError(decoder.Decode(&m.Name))
+	base.NoError(decoder.Decode(&m.InputSize))
 	layers := make([]Layer, 0)
 	count := 0
 	base.NoError(decoder.Decode(&count))

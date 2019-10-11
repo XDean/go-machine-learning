@@ -9,6 +9,8 @@ type (
 	Layer interface {
 		persistent.Persistent
 
+		Init() // after set prev and next
+
 		Forward()  // call next
 		Backward() // call prev
 		Learn()    // call prev

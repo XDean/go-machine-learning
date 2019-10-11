@@ -44,7 +44,7 @@ func (d Data) SetValue(value float64, indexes ...uint) Data {
 		if indexes[0] < d.Len {
 			d.Children[indexes[0]] = d.Children[indexes[0]].SetValue(value, indexes[1:]...)
 		} else {
-			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
+			panic(fmt.Sprintf("SetValue: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 	return d
@@ -62,7 +62,7 @@ func (d Data) GetValue(indexes ...uint) float64 {
 			next := d.Children[indexes[0]]
 			return next.GetValue(indexes[1:]...)
 		} else {
-			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
+			panic(fmt.Sprintf("GetValue: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }
@@ -75,7 +75,7 @@ func (d Data) GetData(indexes ...uint) Data {
 			next := d.Children[indexes[0]]
 			return next.GetData(indexes[1:]...)
 		} else {
-			panic(fmt.Sprintf("Index out of bound, len %d, get %d", d.Len, indexes[0]))
+			panic(fmt.Sprintf("GetData: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }

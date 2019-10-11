@@ -18,7 +18,7 @@ type (
 		BaseLayer
 
 		Weight base.Data // a * i
-		Bias   float64
+		Bias   float64   // TODO, no learning now
 
 		Input          base.Data // i * 1
 		Output         base.Data // a * 1
@@ -74,12 +74,16 @@ func (f *FullLayer) Name() string {
 	return "Full Connect Layer"
 }
 
-func (f *FullLayer) Forward() {
-	input := f.Prev.GetOutput()
+func (f *FullLayer) Init() {
+	f.Weight = f.WeightInit.Init(base.NewData(append([]uint{f.Size}, f.Prev.GetOutputSize()...)...))
+}
 
+func (f *FullLayer) Forward() {
+	f.Input = f.Prev.GetOutput()
 	f.Output = base.NewData(f.Size)
 	f.ErrorToOutput = base.NewData(f.Size)
-	f.OutputToInput = base.NewData(append([]uint{f.Size}, input.GetSize()...)...)
+	f.OutputToInput = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
+	f.OutputToWeight = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
 
 	f.Output.ForEach(func(outputIndex []uint, _ float64) {
 		net := 0.0
@@ -106,6 +110,7 @@ func (f *FullLayer) Learn() {
 	f.Weight.ForEach(func(index []uint, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
 	})
+	f.Prev.Learn()
 }
 
 func (f *FullLayer) GetInput() base.Data {
@@ -130,11 +135,6 @@ func (f *FullLayer) GetInputSize() []uint {
 
 func (f *FullLayer) GetOutputSize() []uint {
 	return []uint{f.Size}
-}
-
-func (f *FullLayer) SetPrev(l Layer) {
-	f.BaseLayer.SetPrev(l)
-	f.Weight = f.WeightInit.Init(base.NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Save(writer *gob.Encoder) (err error) {

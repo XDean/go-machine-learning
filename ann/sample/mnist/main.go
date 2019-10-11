@@ -1,4 +1,4 @@
-package mnist
+package main
 
 import (
 	"errors"
@@ -38,9 +38,8 @@ func main() {
 			Destination: &loadPath,
 		},
 		cli.StringFlag{
-			Name: "data",
-			Usage: fmt.Sprintf("Folder contains MNIST data. It must contains 4 files: [%s, %s, %s, %s]",
-				train_image, train_label, test_image, test_label),
+			Name:        "data",
+			Usage:       fmt.Sprintf("Folder contains MNIST data. It must contains 4 files: [%s, %s, %s, %s]", train_image, train_label, test_image, test_label),
 			Destination: &dataPath,
 		},
 	}
@@ -51,8 +50,9 @@ func main() {
 			Action: Train,
 			Flags: []cli.Flag{
 				cli.IntFlag{
-					Name:        "model",
-					Usage:       "Use an new model to train. Use `show` command to see available model. Note it will be override by model from loadPath.",
+					Name: "model",
+					Usage: "Use an new built-in model to train. Input the model number. " +
+						"You can use `show` command to see available model. Note it will be override by model from loadPath.",
 					Destination: &modelN,
 				},
 				cli.StringFlag{
@@ -61,6 +61,7 @@ func main() {
 					Destination: &savePath,
 				},
 			},
+
 			Subcommands: []cli.Command{
 				{
 					Name:   "show",
@@ -88,18 +89,19 @@ func main() {
 var models = make([]*model.Model, 0)
 
 func RegisterModel(m *model.Model) {
+	m.Init()
 	models = append(models, m)
 }
 
 func Show(c *cli.Context) error {
 	for i, v := range models {
-		fmt.Printf("%d. %s\n", i, v.Name)
+		fmt.Printf("%d. %s\n", i+1, v.Name)
 	}
 	return nil
 }
 
 func Train(c *cli.Context) (err error) {
-	base.RecoverNoError(&err)
+	defer base.RecoverNoError(&err)
 	checkData()
 
 	m, err := loadModel()
@@ -120,7 +122,7 @@ func Train(c *cli.Context) (err error) {
 }
 
 func Test(c *cli.Context) (err error) {
-	base.RecoverNoError(&err)
+	defer base.RecoverNoError(&err)
 	checkData()
 
 	m, err := loadModel()
@@ -158,8 +160,8 @@ func checkData() {
 }
 
 func loadModel() (result *model.Model, err error) {
-	if modelN > 0 && modelN < len(models) {
-		result = models[modelN]
+	if modelN > 0 && modelN <= len(models) {
+		result = models[modelN-1]
 		fmt.Printf("New model: %s\n", result.Name)
 	}
 	if loadPath != "" {

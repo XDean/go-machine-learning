@@ -21,7 +21,7 @@ func (r RandomInit) Name() string {
 
 func (r RandomInit) Init(data base.Data) base.Data {
 	data.ForEach(func(index []uint, value float64) {
-		data.SetValue(rand.Float64()-0.5, index...)
+		data.SetValue(0.1*rand.Float64()-0.1, index...)
 	})
 	return data
 }

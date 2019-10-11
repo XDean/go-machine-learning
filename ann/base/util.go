@@ -1,6 +1,8 @@
 package base
 
-import "errors"
+type noerr struct {
+	error
+}
 
 func SizeToCount(size ...uint) uint {
 	count := uint(1)
@@ -12,17 +14,15 @@ func SizeToCount(size ...uint) uint {
 
 func RecoverNoError(err *error) {
 	r := recover()
-	if e, ok := r.(error); ok {
+	if e, ok := r.(noerr); ok {
 		*err = e
-	} else if e, ok := r.(string); ok {
-		*err = errors.New(e)
-	} else {
+	} else if r != nil {
 		panic(r)
 	}
 }
 
 func NoError(err error) {
 	if err != nil {
-		panic(err)
+		panic(noerr{err})
 	}
 }

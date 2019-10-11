@@ -18,6 +18,10 @@ func (s *StartLayer) Name() string {
 	return "Start Layer"
 }
 
+func (s *StartLayer) Init() {
+	// do nothing
+}
+
 func (s *StartLayer) Save(writer *gob.Encoder) error {
 	panic("no save")
 }
