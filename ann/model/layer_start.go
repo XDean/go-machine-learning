@@ -1,13 +1,16 @@
 package model
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+	"github.com/XDean/go-machine-learning/ann/base"
+)
 
 type StartLayer struct {
 	BaseLayer
-	Input Data
+	Input base.Data
 }
 
-func NewStartLayer(input Data) *StartLayer {
+func NewStartLayer(input base.Data) *StartLayer {
 	return &StartLayer{Input: input}
 }
 
@@ -35,19 +38,19 @@ func (s *StartLayer) Learn() {
 	// do nothing
 }
 
-func (s *StartLayer) GetInput() Data {
+func (s *StartLayer) GetInput() base.Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetOutput() Data {
+func (s *StartLayer) GetOutput() base.Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetErrorToOutput() Data {
-	return NewData()
+func (s *StartLayer) GetErrorToOutput() base.Data {
+	return base.NewData()
 }
 
-func (s *StartLayer) GetOutputToInput() Data {
+func (s *StartLayer) GetOutputToInput() base.Data {
 	return s.Input.Identity2D()
 }
 

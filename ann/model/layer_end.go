@@ -1,19 +1,22 @@
 package model
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+	"github.com/XDean/go-machine-learning/ann/base"
+)
 
 type EndLayer struct {
 	BaseLayer
 
 	ErrorFunc ErrorFunc
-	Target    Data
+	Target    base.Data
 
-	Input         Data
-	TotalError    float64 // E
-	ErrorToOutput Data    // ∂E/∂a
+	Input         base.Data
+	TotalError    float64   // E
+	ErrorToOutput base.Data // ∂E/∂a
 }
 
-func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
+func NewEndLayer(errorFunc ErrorFunc, target base.Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
@@ -31,7 +34,7 @@ func (e *EndLayer) Load(reader *gob.Decoder) error {
 
 func (e *EndLayer) Forward() {
 	e.Input = e.Prev.GetOutput()
-	e.TotalError, e.ErrorToOutput = e.ErrorFunc(e.Target, e.Input)
+	e.TotalError, e.ErrorToOutput = e.ErrorFunc.CalcError(e.Target, e.Input)
 }
 
 func (e *EndLayer) Backward() {
@@ -42,19 +45,19 @@ func (e *EndLayer) Learn() {
 	// do nothing
 }
 
-func (e *EndLayer) GetInput() Data {
+func (e *EndLayer) GetInput() base.Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetOutput() Data {
+func (e *EndLayer) GetOutput() base.Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetErrorToOutput() Data {
+func (e *EndLayer) GetErrorToOutput() base.Data {
 	return e.ErrorToOutput
 }
 
-func (e *EndLayer) GetOutputToInput() Data {
+func (e *EndLayer) GetOutputToInput() base.Data {
 	return e.Input.Identity2D()
 }
 

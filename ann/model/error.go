@@ -1,8 +1,11 @@
 package model
 
-import "github.com/XDean/go-machine-learning/ann/model/persistent"
+import (
+	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/model/persistent"
+)
 
 type ErrorFunc interface {
 	persistent.Persistent
-	Error(target, actual Data) (error float64, partial Data) // ∂E/∂a
+	CalcError(target, actual base.Data) (error float64, partial base.Data) // ∂E/∂a
 }

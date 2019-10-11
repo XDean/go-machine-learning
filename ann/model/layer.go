@@ -1,6 +1,9 @@
 package model
 
-import "github.com/XDean/go-machine-learning/ann/model/persistent"
+import (
+	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/model/persistent"
+)
 
 type (
 	Layer interface {
@@ -10,10 +13,10 @@ type (
 		Backward() // call prev
 		Learn()    // call prev
 
-		GetInput() Data         // i (prev output)
-		GetOutput() Data        // o
-		GetErrorToOutput() Data // ∂E / ∂a [output] a
-		GetOutputToInput() Data // ∂a / ∂i [output, input] a * i
+		GetInput() base.Data         // i (prev output)
+		GetOutput() base.Data        // o
+		GetErrorToOutput() base.Data // ∂E / ∂a [output] a
+		GetOutputToInput() base.Data // ∂a / ∂i [output, input] a * i
 
 		GetInputSize() []uint // nil means no constraint
 		GetOutputSize() []uint
@@ -43,4 +46,23 @@ func (bl *BaseLayer) GetPrev() Layer {
 
 func (bl *BaseLayer) GetNext() Layer {
 	return bl.Next
+}
+
+func ErrorToInput(l Layer) base.Data {
+	errorToOutput := l.GetErrorToOutput()
+	outputToInput := l.GetOutputToInput()
+
+	os := errorToOutput.GetSize()
+	ois := outputToInput.GetSize()
+	size := ois[len(os):]
+
+	errorToInput := base.NewData(size...)
+	errorToInput.ForEach(func(inputIndex []uint, value float64) {
+		sum := 0.0
+		errorToOutput.ForEach(func(outputIndex []uint, value float64) {
+			sum += value * outputToInput.GetValue(append(outputIndex, inputIndex...)...)
+		})
+		errorToInput.SetValue(sum, inputIndex...)
+	})
+	return errorToInput
 }

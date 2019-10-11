@@ -2,6 +2,7 @@ package classic
 
 import (
 	"encoding/gob"
+	"github.com/XDean/go-machine-learning/ann/base"
 	. "github.com/XDean/go-machine-learning/ann/model"
 	"github.com/XDean/go-machine-learning/ann/model/persistent"
 )
@@ -16,14 +17,14 @@ type (
 	FullLayer struct {
 		BaseLayer
 
-		Weight Data // a * i
+		Weight base.Data // a * i
 		Bias   float64
 
-		Input          Data // i * 1
-		Output         Data // a * 1
-		ErrorToOutput  Data // a * 1, ∂E / ∂a
-		OutputToInput  Data // a * i, ∂a / ∂i
-		OutputToWeight Data // a * i, ∂a / ∂w
+		Input          base.Data // i * 1
+		Output         base.Data // a * 1
+		ErrorToOutput  base.Data // a * 1, ∂E / ∂a
+		OutputToInput  base.Data // a * i, ∂a / ∂i
+		OutputToWeight base.Data // a * i, ∂a / ∂w
 
 		Size          uint
 		Activation    Activation
@@ -76,9 +77,9 @@ func (f *FullLayer) Name() string {
 func (f *FullLayer) Forward() {
 	input := f.Prev.GetOutput()
 
-	f.Output = NewData(f.Size)
-	f.ErrorToOutput = NewData(f.Size)
-	f.OutputToInput = NewData(append([]uint{f.Size}, input.GetSize()...)...)
+	f.Output = base.NewData(f.Size)
+	f.ErrorToOutput = base.NewData(f.Size)
+	f.OutputToInput = base.NewData(append([]uint{f.Size}, input.GetSize()...)...)
 
 	f.Output.ForEach(func(outputIndex []uint, _ float64) {
 		net := 0.0
@@ -107,19 +108,19 @@ func (f *FullLayer) Learn() {
 	})
 }
 
-func (f *FullLayer) GetInput() Data {
+func (f *FullLayer) GetInput() base.Data {
 	return f.Input
 }
 
-func (f *FullLayer) GetOutput() Data {
+func (f *FullLayer) GetOutput() base.Data {
 	return f.Output
 }
 
-func (f *FullLayer) GetErrorToOutput() Data {
+func (f *FullLayer) GetErrorToOutput() base.Data {
 	return f.ErrorToOutput
 }
 
-func (f *FullLayer) GetOutputToInput() Data {
+func (f *FullLayer) GetOutputToInput() base.Data {
 	return f.OutputToInput
 }
 
@@ -133,29 +134,29 @@ func (f *FullLayer) GetOutputSize() []uint {
 
 func (f *FullLayer) SetPrev(l Layer) {
 	f.BaseLayer.SetPrev(l)
-	f.Weight = f.WeightInit.Init(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(base.NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
-	defer RecoverNoError(&err)
-	NoError(writer.Encode(f.Size))
-	NoError(writer.Encode(f.Weight))
-	NoError(writer.Encode(f.Bias))
-	NoError(writer.Encode(f.LearningRatio))
-	NoError(persistent.Save(writer, f.Activation))
-	NoError(persistent.Save(writer, f.WeightInit))
+	defer base.RecoverNoError(&err)
+	base.NoError(writer.Encode(f.Size))
+	base.NoError(writer.Encode(f.Weight))
+	base.NoError(writer.Encode(f.Bias))
+	base.NoError(writer.Encode(f.LearningRatio))
+	base.NoError(persistent.Save(writer, f.Activation))
+	base.NoError(persistent.Save(writer, f.WeightInit))
 	return nil
 }
 
 func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
-	defer RecoverNoError(&err)
-	NoError(reader.Decode(&f.Size))
-	NoError(reader.Decode(&f.Weight))
-	NoError(reader.Decode(&f.Bias))
-	NoError(reader.Decode(&f.LearningRatio))
+	defer base.RecoverNoError(&err)
+	base.NoError(reader.Decode(&f.Size))
+	base.NoError(reader.Decode(&f.Weight))
+	base.NoError(reader.Decode(&f.Bias))
+	base.NoError(reader.Decode(&f.LearningRatio))
 
 	bean, err := persistent.Load(reader)
-	NoError(err)
+	base.NoError(err)
 	if actual, ok := bean.(Activation); ok {
 		f.Activation = actual
 	} else {
@@ -163,7 +164,7 @@ func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
 	}
 
 	bean, err = persistent.Load(reader)
-	NoError(err)
+	base.NoError(err)
 	if actual, ok := bean.(WeightInit); ok {
 		f.WeightInit = actual
 	} else {

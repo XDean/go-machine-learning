@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/gob"
+	"github.com/XDean/go-machine-learning/ann/base"
 	"github.com/XDean/go-machine-learning/ann/model/persistent"
 	"io"
 	"os"
@@ -15,8 +16,8 @@ type (
 	}
 
 	Result struct {
-		Output     Data
-		Target     Data
+		Output     base.Data
+		Target     base.Data
 		TotalError float64
 	}
 )
@@ -32,7 +33,7 @@ func (m *Model) Init() {
 	}
 }
 
-func (m *Model) Feed(input, target Data) Result {
+func (m *Model) Feed(input, target base.Data) Result {
 	start := m.newStart(input)
 	end := m.newEnd(target)
 
@@ -43,7 +44,7 @@ func (m *Model) Feed(input, target Data) Result {
 	return end.ToResult()
 }
 
-func (m *Model) Test(input, target Data) Result {
+func (m *Model) Test(input, target base.Data) Result {
 	start := m.newStart(input)
 	end := m.newEnd(target)
 
@@ -51,58 +52,58 @@ func (m *Model) Test(input, target Data) Result {
 	return end.ToResult()
 }
 
-func (m *Model) Predict(input Data) Data {
+func (m *Model) Predict(input base.Data) base.Data {
 	start := m.newStart(input)
 	start.Forward()
 	return m.lastLayer().GetOutput()
 }
 
 func (m *Model) SaveToFile(file string) (err error) {
-	defer RecoverNoError(&err)
-	NoError(os.MkdirAll(filepath.Dir(file), 0755))
+	defer base.RecoverNoError(&err)
+	base.NoError(os.MkdirAll(filepath.Dir(file), 0755))
 	writer, err := os.Create(file)
-	NoError(err)
+	base.NoError(err)
 	defer writer.Close()
 	return m.Save(writer)
 }
 
 func (m *Model) Save(writer io.Writer) (err error) {
-	defer RecoverNoError(&err)
+	defer base.RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
-	NoError(encoder.Encode(len(m.Layers)))
+	base.NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
-		NoError(persistent.Save(encoder, v))
+		base.NoError(persistent.Save(encoder, v))
 	}
-	NoError(persistent.Save(encoder, m.ErrorFunc))
+	base.NoError(persistent.Save(encoder, m.ErrorFunc))
 	return nil
 }
 
 func (m *Model) LoadFromFile(file string) (err error) {
-	defer RecoverNoError(&err)
+	defer base.RecoverNoError(&err)
 	reader, err := os.Open(file)
-	NoError(err)
+	base.NoError(err)
 	defer reader.Close()
 	return m.Load(reader)
 }
 
 func (m *Model) Load(reader io.Reader) (err error) {
-	defer RecoverNoError(&err)
+	defer base.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
 	layers := make([]Layer, 0)
 	count := 0
-	NoError(decoder.Decode(&count))
+	base.NoError(decoder.Decode(&count))
 	for ; count > 0; count-- {
 		bean, err := persistent.Load(decoder)
-		NoError(err)
+		base.NoError(err)
 		layer, ok := bean.(Layer)
 		if !ok {
 			return persistent.TypeError("Layer", bean)
 		}
-		NoError(bean.Load(decoder))
+		base.NoError(bean.Load(decoder))
 		layers = append(layers, layer)
 	}
 	bean, err := persistent.Load(decoder)
-	NoError(err)
+	base.NoError(err)
 
 	errorFunc, ok := bean.(ErrorFunc)
 	if !ok {
@@ -119,14 +120,14 @@ func (m *Model) lastLayer() Layer {
 	return m.Layers[len(m.Layers)-1]
 }
 
-func (m *Model) newStart(input Data) *StartLayer {
+func (m *Model) newStart(input base.Data) *StartLayer {
 	start := NewStartLayer(input)
 	m.Layers[0].SetPrev(start)
 	start.SetNext(m.Layers[0])
 	return start
 }
 
-func (m *Model) newEnd(target Data) *EndLayer {
+func (m *Model) newEnd(target base.Data) *EndLayer {
 	end := NewEndLayer(m.ErrorFunc, target)
 	end.SetPrev(m.lastLayer())
 	m.lastLayer().SetNext(end)
