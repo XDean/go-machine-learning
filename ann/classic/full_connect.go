@@ -6,10 +6,8 @@ import (
 	"github.com/XDean/go-machine-learning/ann/model/persistent"
 )
 
-const FULL_CONNECT = "Full Connect Layer"
-
 func init() {
-	persistent.Register(FULL_CONNECT, func() persistent.Persistent {
+	persistent.Register(func() persistent.Persistent {
 		return NewFullLayer(FullLayerConfig{})
 	})
 }
@@ -72,7 +70,7 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 }
 
 func (f *FullLayer) Name() string {
-	return FULL_CONNECT
+	return "Full Connect Layer"
 }
 
 func (f *FullLayer) Forward() {

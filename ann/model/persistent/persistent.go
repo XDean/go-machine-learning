@@ -14,8 +14,8 @@ type Persistent interface {
 
 var constructors = make(map[string]func() Persistent)
 
-func Register(name string, p func() Persistent) {
-	constructors[name] = p
+func Register(constructor func() Persistent) {
+	constructors[constructor().Name()] = constructor
 }
 
 func New(name string) (Persistent, error) {
