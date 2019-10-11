@@ -8,8 +8,8 @@ type (
 
 		GetInput() Data         // i (prev output)
 		GetOutput() Data        // o
-		GetErrorToOutput() Data // ∂E / ∂a [output]
-		GetOutputToInput() Data // ∂a / ∂i [output, input]
+		GetErrorToOutput() Data // ∂E / ∂a [output] a
+		GetOutputToInput() Data // ∂a / ∂i [output, input] a * i
 
 		GetInputSize() []uint // nil means no constraint
 		GetOutputSize() []uint

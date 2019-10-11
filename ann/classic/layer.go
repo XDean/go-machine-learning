@@ -8,14 +8,14 @@ type (
 	FullLayer struct {
 		BaseLayer
 
-		Weight Data // i * j
+		Weight Data // a * i
 		Bias   float64
 
-		Input         Data // i * 1
-		Net           Data // j * 1
-		Output        Data // j * 1
-		Partial       Data // j * 1, ∂a / ∂n
-		ErrorToOutput Data // i * j, ∂E / ∂w
+		Input          Data // i * 1
+		Output         Data // a * 1
+		ErrorToOutput  Data // a * 1, ∂E / ∂a
+		OutputToInput  Data // a * i, ∂a / ∂i
+		OutputToWeight Data // a * i, ∂a / ∂w
 
 		Size          uint
 		Activation    Activation
@@ -61,41 +61,37 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 }
 
 func (f *FullLayer) Forward() {
-	f.Input = f.Prev.GetOutput().ToDim(1)
-	f.Net = NewData(f.Size).Fill(f.Bias)
+	input := f.Prev.GetOutput()
+
 	f.Output = NewData(f.Size)
-	f.Partial = NewData(f.Size)
+	f.ErrorToOutput = NewData(f.Size)
+	f.OutputToInput = NewData(append([]uint{f.Size}, input.GetSize()...)...)
 
-	f.Input.ForEach(func(i []uint, prev float64) {
-		f.Weight.GetData(i[0]).ForEach(func(j []uint, w float64) {
-			f.Net.SetValue(f.Net.GetValue(j[0])+w*prev, j[0])
+	f.Output.ForEach(func(outputIndex []uint, _ float64) {
+		net := 0.0
+		f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+			net += w * f.Input.GetValue(inputIndex...)
 		})
-	})
-
-	f.Net.ForEach(func(index []uint, value float64) {
-		output, partial := f.Activation.Active(value)
-		f.Output.SetValue(output, index...)
-		f.Partial.SetValue(partial, index...)
+		output, partial := f.Activation.Active(net)
+		f.Output.SetValue(output, outputIndex...)
+		f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+			f.OutputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
+			f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
+		})
 	})
 
 	f.Next.Forward()
 }
 
 func (f *FullLayer) Backward() {
-	if f.Next == nil {
-		f.ErrorToOutput.ForEach(func(index []uint, value float64) {
-			//i, j := index[0], index[1]
-
-		})
-	} else {
-
-	}
-
+	f.ErrorToOutput = ErrorToInput(f.Next) // next layer's input is this layer's output
 	f.Prev.Backward()
 }
 
 func (f *FullLayer) Learn() {
-	panic("implement me")
+	f.Weight.ForEach(func(index []uint, value float64) {
+		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
+	})
 }
 
 func (f *FullLayer) GetInput() Data {
@@ -111,7 +107,7 @@ func (f *FullLayer) GetErrorToOutput() Data {
 }
 
 func (f *FullLayer) GetOutputToInput() Data {
-	panic("TODO") //TODO
+	return f.OutputToInput
 }
 
 func (f *FullLayer) GetInputSize() []uint {
@@ -124,7 +120,5 @@ func (f *FullLayer) GetOutputSize() []uint {
 
 func (f *FullLayer) SetPrev(l Layer) {
 	f.BaseLayer.SetPrev(l)
-	lastCount := SizeToCount(l.GetOutputSize()...)
-	f.Weight = f.WeightInit(NewData(lastCount, f.Size))
-	f.ErrorToOutput = NewData(lastCount, f.Size)
+	f.Weight = f.WeightInit(NewData(append([]uint{f.Size}, l.GetOutputSize()...)...))
 }
