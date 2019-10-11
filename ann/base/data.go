@@ -116,12 +116,14 @@ func (d Data) ForEach(f func(index []uint, value float64)) {
 	}
 }
 
-func (d Data) ToDim(dim int) Data {
+func (d Data) ToDim(dim uint) Data {
 	size := d.GetSize()
-	if len(size) == dim {
+	if len(size) == int(dim) {
 		return d
 	}
-	if dim == 1 {
+	if dim == 0 {
+		panic("Can't zip to dim 0")
+	} else if dim == 1 {
 		result := NewData(d.GetCount())
 		i := 0
 		d.ForEach(func(index []uint, value float64) {
@@ -147,6 +149,15 @@ func (d Data) Identity2D() Data {
 	result := NewData(append(d.GetSize(), d.GetSize()...)...)
 	d.ForEach(func(index []uint, value float64) {
 		result.SetValue(1, append(index, index...)...)
+	})
+	return result
+}
+
+func (d Data) ToArray() []float64 {
+	d1 := d.ToDim(1)
+	result := make([]float64, d1.GetCount())
+	d1.ForEach(func(index []uint, value float64) {
+		result[index[0]] = value
 	})
 	return result
 }

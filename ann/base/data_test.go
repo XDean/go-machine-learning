@@ -71,8 +71,26 @@ func TestData_ToDim(t *testing.T) {
 	assert.Equal(t, uint(2), d3t2.GetDim())
 
 	assert.Equal(t, d3t2, d3t2.ToDim(2))
+
+	assert.Panics(t, func() {
+		d3t2.ToDim(0)
+	})
 }
 
 func TestData_Fill(t *testing.T) {
 	assert.Equal(t, 5.0, NewData().Fill(5).Value)
+}
+
+func TestData_Identity2D(t *testing.T) {
+	assert.Equal(t, []float64{
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1}, NewData(2, 2).Identity2D().ToArray())
+	assert.Equal(t, []float64{1, 0, 0, 1}, NewData(2).Identity2D().ToArray())
+}
+
+func TestData_ToArray(t *testing.T) {
+	assert.Equal(t, []float64{1, 1, 1, 1}, NewData(2, 2).Fill(1).ToArray())
+	assert.Equal(t, []float64{1}, NewData().Fill(1).ToArray())
 }
