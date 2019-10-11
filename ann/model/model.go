@@ -3,7 +3,7 @@ package model
 import (
 	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
-	"github.com/XDean/go-machine-learning/ann/model/persistent"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"io"
 	"os"
 	"path/filepath"

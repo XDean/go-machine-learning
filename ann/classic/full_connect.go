@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
 	. "github.com/XDean/go-machine-learning/ann/model"
-	"github.com/XDean/go-machine-learning/ann/model/persistent"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 func init() {

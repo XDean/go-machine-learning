@@ -2,7 +2,7 @@ package classic
 
 import (
 	"github.com/XDean/go-machine-learning/ann/base"
-	"github.com/XDean/go-machine-learning/ann/model/persistent"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math/rand"
 )
 
