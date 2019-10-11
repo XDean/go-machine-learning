@@ -3,6 +3,7 @@ package persistent
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 )
 
 type Persistent interface {
@@ -15,7 +16,11 @@ type Persistent interface {
 var constructors = make(map[string]func() Persistent)
 
 func Register(constructor func() Persistent) {
-	constructors[constructor().Name()] = constructor
+	name := constructor().Name()
+	if constructors[name] != nil {
+		fmt.Println("Duplicate register: " + name)
+	}
+	constructors[name] = constructor
 }
 
 func New(name string) (Persistent, error) {

@@ -5,6 +5,12 @@ import (
 	"github.com/XDean/go-machine-learning/ann/model/persistent"
 )
 
+func init() {
+	persistent.Register(func() persistent.Persistent {
+		return SquareError{}
+	})
+}
+
 type SquareError struct {
 	persistent.TypePersistent
 }
