@@ -27,14 +27,14 @@ type (
 		OutputToInput  base.Data // a * i, ∂a / ∂i
 		OutputToWeight base.Data // a * i, ∂a / ∂w
 
-		Size          uint
+		Size          int
 		Activation    Activation
 		LearningRatio float64
 		WeightInit    WeightInit
 	}
 
 	FullLayerConfig struct {
-		Size          uint
+		Size          int
 		Activation    Activation
 		LearningRatio float64
 		WeightInit    WeightInit
@@ -76,28 +76,28 @@ func (f *FullLayer) Name() string {
 }
 
 func (f *FullLayer) Init() {
-	f.Weight = f.WeightInit.Init(base.NewData(append([]uint{f.Size}, f.Prev.GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(base.NewData(append([]int{f.Size}, f.Prev.GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Forward() {
 	f.Input = f.Prev.GetOutput()
 	f.Output = base.NewData(f.Size)
 	f.ErrorToOutput = base.NewData(f.Size)
-	f.OutputToInput = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
-	f.OutputToWeight = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
+	f.OutputToInput = base.NewData(append([]int{f.Size}, f.Input.GetSize()...)...)
+	f.OutputToWeight = base.NewData(append([]int{f.Size}, f.Input.GetSize()...)...)
 
 	wg := sync.WaitGroup{}
-	f.Output.ForEach(func(outputIndex []uint, _ float64) {
+	f.Output.ForEach(func(outputIndex []int, _ float64) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			net := 0.0
-			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
 				net += w * f.Input.GetValue(inputIndex...)
 			})
 			output, partial := f.Activation.Active(net)
 			f.Output.SetValue(output, outputIndex...)
-			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
 				f.OutputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
 				f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
 			})
@@ -113,7 +113,7 @@ func (f *FullLayer) Backward() {
 func (f *FullLayer) Learn() {
 	//fmt.Println("weight", f.Weight.ToArray()[:10])
 	//fmt.Println("ErrorToOutput", f.ErrorToOutput.ToArray()[:10])
-	f.Weight.ForEach(func(index []uint, value float64) {
+	f.Weight.ForEach(func(index []int, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
 	})
 }
@@ -134,12 +134,12 @@ func (f *FullLayer) GetOutputToInput() base.Data {
 	return f.OutputToInput
 }
 
-func (f *FullLayer) GetInputSize() []uint {
+func (f *FullLayer) GetInputSize() []int {
 	return nil
 }
 
-func (f *FullLayer) GetOutputSize() []uint {
-	return []uint{f.Size}
+func (f *FullLayer) GetOutputSize() []int {
+	return []int{f.Size}
 }
 
 func (f *FullLayer) Save(writer *gob.Encoder) (err error) {

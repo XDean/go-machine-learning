@@ -55,14 +55,14 @@ func (s *StartLayer) GetErrorToOutput() base.Data {
 }
 
 func (s *StartLayer) GetOutputToInput() base.Data {
-	return s.Input.Identity2D()
+	return base.Identity2D(s.Input)
 }
 
-func (s *StartLayer) GetInputSize() []uint {
+func (s *StartLayer) GetInputSize() []int {
 	return s.Input.GetSize()
 }
 
-func (s *StartLayer) GetOutputSize() []uint {
+func (s *StartLayer) GetOutputSize() []int {
 	return s.Input.GetSize()
 }
 

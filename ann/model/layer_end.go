@@ -63,14 +63,14 @@ func (e *EndLayer) GetErrorToOutput() base.Data {
 }
 
 func (e *EndLayer) GetOutputToInput() base.Data {
-	return e.Input.Identity2D()
+	return base.Identity2D(e.Input)
 }
 
-func (e *EndLayer) GetInputSize() []uint {
+func (e *EndLayer) GetInputSize() []int {
 	return e.Input.GetSize()
 }
 
-func (e *EndLayer) GetOutputSize() []uint {
+func (e *EndLayer) GetOutputSize() []int {
 	return e.Input.GetSize()
 }
 
