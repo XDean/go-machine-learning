@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var (
@@ -109,19 +110,18 @@ func Train(c *cli.Context) (err error) {
 	m.Init()
 
 	datas := mnist.MnistLoad(filepath.Join(dataPath, train_image), filepath.Join(dataPath, train_label))
-	count := 0
+	profile := NewProfile(100)
 	for {
 		data, ok := <-datas
 		if !ok {
 			break
 		}
-		count++
 		input, target := mnistToData(data)
-		result := m.Feed(input, target)
-		for i := 0; i < 5; i++ {
-			m.Feed(input, target)
-		}
-		fmt.Printf("%5d: expect %d, predict %d, error %.4f\n", count, data.Label, predictFromResult(result), result.TotalError)
+		result := m.FeedTimes(input, target, 5)[1]
+		predict := predictFromResult(result)
+		profile.Add(data.Label == uint8(predict))
+		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
+			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, result.Time/time.Millisecond)
 	}
 	return saveModel(m)
 }
@@ -213,4 +213,41 @@ func predictFromResult(r model.Result) uint {
 		}
 	})
 	return max
+}
+
+type Profile struct {
+	Total int
+	Hit   int
+
+	Index     int
+	Recent    []bool
+	RecentHit int
+}
+
+func NewProfile(recent int) *Profile {
+	return &Profile{Recent: make([]bool, recent)}
+}
+
+func (p *Profile) Add(b bool) {
+	p.Total++
+	if b {
+		p.Hit++
+		p.RecentHit++
+	}
+	if p.Recent[p.Index] {
+		p.RecentHit--
+	}
+	p.Recent[p.Index] = b
+	p.Index = (p.Index + 1) % len(p.Recent)
+}
+
+func (p *Profile) HitRate() float64 {
+	return float64(p.Hit) / float64(p.Total)
+}
+
+func (p *Profile) RecentHitRate() float64 {
+	if p.Total < len(p.Recent) {
+		return float64(p.RecentHit) / float64(p.Total)
+	}
+	return float64(p.RecentHit) / float64(len(p.Recent))
 }

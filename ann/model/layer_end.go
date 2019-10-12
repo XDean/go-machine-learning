@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
+	"time"
 )
 
 type EndLayer struct {
@@ -73,11 +74,12 @@ func (e *EndLayer) GetOutputSize() []uint {
 	return e.Input.GetSize()
 }
 
-func (e *EndLayer) ToResult() Result {
+func (e *EndLayer) ToResult(start time.Time) Result {
 	return Result{
 		Output:     e.Input,
 		Target:     e.Target,
 		TotalError: e.TotalError,
+		Time:       time.Since(start),
 	}
 }
 

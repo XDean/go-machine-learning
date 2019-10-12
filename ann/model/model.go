@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type (
@@ -21,6 +22,7 @@ type (
 		Output     base.Data
 		Target     base.Data
 		TotalError float64
+		Time       time.Duration
 	}
 )
 
@@ -42,9 +44,17 @@ func (m *Model) Init() {
 	}
 }
 
+func (m *Model) FeedTimes(input, target base.Data, times int) []Result {
+	result := make([]Result, times)
+	for i := range result {
+		result[i] = m.Feed(input, target)
+	}
+	return result
+}
+
 func (m *Model) Feed(input, target base.Data) Result {
-	//fmt.Println(input.ToArray())
-	//fmt.Println(target.ToArray())
+	startTime := time.Now()
+
 	start := m.newStart(input)
 	end := m.newEnd(target)
 
@@ -60,10 +70,12 @@ func (m *Model) Feed(input, target base.Data) Result {
 	m.learn()
 	start.Learn()
 
-	return end.ToResult()
+	return end.ToResult(startTime)
 }
 
 func (m *Model) Test(input, target base.Data) Result {
+	startTime := time.Now()
+
 	start := m.newStart(input)
 	end := m.newEnd(target)
 
@@ -71,7 +83,7 @@ func (m *Model) Test(input, target base.Data) Result {
 	m.forward()
 	end.Forward()
 
-	return end.ToResult()
+	return end.ToResult(startTime)
 }
 
 func (m *Model) Predict(input base.Data) base.Data {
