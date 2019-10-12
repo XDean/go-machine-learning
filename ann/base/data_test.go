@@ -34,9 +34,11 @@ func TestData_GetValue(t *testing.T) {
 
 func TestData_GetData(t *testing.T) {
 	d := NewData(2, 2, 2)
+
 	s1 := d.GetData(1, 1)
 	assert.Equal(t, 0.0, s1.GetValue(0))
-	d = d.SetValue(0.5, 1, 1, 0)
+
+	s1 = s1.SetValue(0.5, 0)
 	assert.Equal(t, 0.5, s1.GetValue(0))
 
 	assert.Panics(t, func() {
@@ -78,7 +80,8 @@ func TestData_ToDim(t *testing.T) {
 }
 
 func TestData_Fill(t *testing.T) {
-	assert.Equal(t, 5.0, NewData().Fill(5).Value)
+	assert.Equal(t, 5.0, NewData().Fill(5).GetValue())
+	assert.Equal(t, []float64{5, 5, 5, 5}, NewData(2, 2).Fill(5).ToArray())
 }
 
 func TestData_Identity2D(t *testing.T) {
