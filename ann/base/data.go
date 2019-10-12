@@ -12,6 +12,7 @@ type Data interface {
 	Fill(value float64) Data // return self
 	ToArray() []float64
 	ForEach(f func(index []int, value float64))
+	Map(f func(index []int, value float64) float64)
 }
 
 func NewData(size ...int) Data {

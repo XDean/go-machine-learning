@@ -51,3 +51,7 @@ func (d Data0) ToArray() []float64 {
 func (d Data0) ForEach(f func(index []int, value float64)) {
 	f([]int{}, *d.value)
 }
+
+func (d Data0) Map(f func(index []int, value float64) float64) {
+	*d.value = f([]int{}, *d.value)
+}

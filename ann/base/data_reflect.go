@@ -88,7 +88,7 @@ func (d DataReflect) GetDim() int {
 
 func (d DataReflect) ForEach(f func(index []int, value float64)) {
 	count := d.GetCount()
-	for i := int(0); i < count; i++ {
+	for i := 0; i < count; i++ {
 		index := indexToIndexes(d.size, i)
 		f(index, d.GetValue(index...))
 	}
@@ -102,6 +102,19 @@ func (d DataReflect) ToArray() []float64 {
 		result[i] = d.GetValue(indexes...)
 	}
 	return result
+}
+
+func (d DataReflect) Map(f func(index []int, value float64) float64) {
+	if d.isValue() {
+		*d.value = f([]int{}, *d.value)
+	} else {
+		count := d.GetCount()
+		for i := 0; i < count; i++ {
+			indexes := indexToIndexes(d.size, i)
+			value := d.findByIndex(indexes)
+			value.SetFloat(f(indexes, value.Float()))
+		}
+	}
 }
 
 func (d DataReflect) findByIndex(indexes []int) reflect.Value {

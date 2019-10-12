@@ -113,6 +113,18 @@ func (d DataRecusive) ForEach(f func(index []int, value float64)) {
 	}
 }
 
+func (d DataRecusive) Map(f func(index []int, value float64) float64) {
+	if d.isValue() {
+		*d.Value = f([]int{}, *d.Value)
+	} else {
+		for i, v := range d.Children {
+			v.Map(func(index []int, value float64) float64 {
+				return f(append([]int{int(i)}, index...), value)
+			})
+		}
+	}
+}
+
 func (d DataRecusive) ToArray() []float64 {
 	if d.isValue() {
 		return []float64{*d.Value}

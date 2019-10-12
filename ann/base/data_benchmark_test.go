@@ -2,6 +2,18 @@ package base
 
 import "testing"
 
+func BenchmarkData2_New(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewData2(1000, 1000)
+	}
+}
+
+func BenchmarkDataN_New(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewDataN(1000, 1000)
+	}
+}
+
 func BenchmarkData2_Fill(b *testing.B) {
 	d := NewData2(1000, 1000)
 	for i := 0; i < b.N; i++ {
@@ -59,8 +71,8 @@ func BenchmarkSlice_ForEach(b *testing.B) {
 func BenchmarkData2_Map(b *testing.B) {
 	d := NewData2(1000, 1000)
 	for n := 0; n < b.N; n++ {
-		d.ForEach(func(index []int, value float64) {
-			d.SetValue(float64(index[0]+index[1]+n), index...)
+		d.Map(func(index []int, value float64) float64 {
+			return float64(index[0] + index[1] + n)
 		})
 	}
 }
@@ -68,8 +80,8 @@ func BenchmarkData2_Map(b *testing.B) {
 func BenchmarkDataN_Map(b *testing.B) {
 	d := NewDataN(1000, 1000)
 	for n := 0; n < b.N; n++ {
-		d.ForEach(func(index []int, value float64) {
-			d.SetValue(float64(index[0]+index[1]+n), index...)
+		d.Map(func(index []int, value float64) float64 {
+			return float64(index[0] + index[1] + n)
 		})
 	}
 }

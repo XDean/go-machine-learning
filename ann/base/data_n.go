@@ -78,6 +78,12 @@ func (d DataN) ForEach(f func(indexes []int, value float64)) {
 	}
 }
 
+func (d DataN) Map(f func(index []int, value float64) float64) {
+	for i, v := range d.value {
+		d.value[i] = f(indexToIndexes(d.size, i), v)
+	}
+}
+
 func checkIndex(size []int, indexes []int, match bool) error {
 	if match && len(indexes) != len(size) {
 		return fmt.Errorf("Index not match, actual %d, get %d", len(size), len(indexes))

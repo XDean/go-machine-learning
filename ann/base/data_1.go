@@ -63,3 +63,9 @@ func (d Data1) ForEach(f func(index []int, value float64)) {
 		f([]int{i}, v)
 	}
 }
+
+func (d Data1) Map(f func(index []int, value float64) float64) {
+	for i, v := range d.value {
+		d.value[i] = f([]int{i}, v)
+	}
+}
