@@ -43,6 +43,8 @@ func (m *Model) Init() {
 }
 
 func (m *Model) Feed(input, target base.Data) Result {
+	//fmt.Println(input.ToArray())
+	//fmt.Println(target.ToArray())
 	start := m.newStart(input)
 	end := m.newEnd(target)
 
@@ -175,6 +177,7 @@ func (m *Model) forLayerReverse(f func(int, Layer)) {
 func (m *Model) forward() {
 	m.forLayer(func(i int, layer Layer) {
 		layer.Forward()
+		//fmt.Println(layer.GetOutput().ToArray())
 	})
 }
 

@@ -5,6 +5,7 @@ import (
 	"github.com/XDean/go-machine-learning/ann/base"
 	. "github.com/XDean/go-machine-learning/ann/model"
 	"github.com/XDean/go-machine-learning/ann/persistent"
+	"sync"
 )
 
 func init() {
@@ -41,26 +42,26 @@ type (
 )
 
 var (
-	DefaultConfig = FullLayerConfig{
+	FullLayerDefaultConfig = FullLayerConfig{
 		Size:          10,
 		Activation:    Sigmoid{},
 		LearningRatio: 0.1,
-		WeightInit:    RandomInit{},
+		WeightInit:    &RandomInit{Range: 1},
 	}
 )
 
 func NewFullLayer(config FullLayerConfig) *FullLayer {
 	if config.Size == 0 {
-		config.Size = DefaultConfig.Size
+		config.Size = FullLayerDefaultConfig.Size
 	}
 	if config.Activation == nil {
-		config.Activation = DefaultConfig.Activation
+		config.Activation = FullLayerDefaultConfig.Activation
 	}
 	if config.LearningRatio == 0 {
-		config.LearningRatio = DefaultConfig.LearningRatio
+		config.LearningRatio = FullLayerDefaultConfig.LearningRatio
 	}
 	if config.WeightInit == nil {
-		config.WeightInit = DefaultConfig.WeightInit
+		config.WeightInit = FullLayerDefaultConfig.WeightInit
 	}
 	return &FullLayer{
 		Size:          config.Size,
@@ -85,18 +86,24 @@ func (f *FullLayer) Forward() {
 	f.OutputToInput = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
 	f.OutputToWeight = base.NewData(append([]uint{f.Size}, f.Input.GetSize()...)...)
 
+	wg := sync.WaitGroup{}
 	f.Output.ForEach(func(outputIndex []uint, _ float64) {
-		net := 0.0
-		f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
-			net += w * f.Input.GetValue(inputIndex...)
-		})
-		output, partial := f.Activation.Active(net)
-		f.Output.SetValue(output, outputIndex...)
-		f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
-			f.OutputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
-			f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
-		})
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			net := 0.0
+			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+				net += w * f.Input.GetValue(inputIndex...)
+			})
+			output, partial := f.Activation.Active(net)
+			f.Output.SetValue(output, outputIndex...)
+			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []uint, w float64) {
+				f.OutputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
+				f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
+			})
+		}()
 	})
+	wg.Wait()
 }
 
 func (f *FullLayer) Backward() {
@@ -104,6 +111,8 @@ func (f *FullLayer) Backward() {
 }
 
 func (f *FullLayer) Learn() {
+	//fmt.Println("weight", f.Weight.ToArray()[:10])
+	//fmt.Println("ErrorToOutput", f.ErrorToOutput.ToArray()[:10])
 	f.Weight.ForEach(func(index []uint, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
 	})

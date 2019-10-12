@@ -27,6 +27,7 @@ const (
 )
 
 func main() {
+	//rand.Seed(time.Now().Unix())
 	app := cli.NewApp()
 
 	app.Name = "XDean Go ANN Sample"
@@ -89,7 +90,6 @@ func main() {
 var models = make([]*model.Model, 0)
 
 func RegisterModel(m *model.Model) {
-	m.Init()
 	models = append(models, m)
 }
 
@@ -106,6 +106,7 @@ func Train(c *cli.Context) (err error) {
 
 	m, err := loadModel()
 	base.NoError(err)
+	m.Init()
 
 	datas := mnist.MnistLoad(filepath.Join(dataPath, train_image), filepath.Join(dataPath, train_label))
 	count := 0
@@ -115,8 +116,12 @@ func Train(c *cli.Context) (err error) {
 			break
 		}
 		count++
-		result := m.Feed(mnistToData(data))
-		fmt.Printf("%5d: expect %d, predict %d, error %.2f\n", count, data.Label, predictFromResult(result), result.TotalError)
+		input, target := mnistToData(data)
+		result := m.Feed(input, target)
+		for i := 0; i < 5; i++ {
+			m.Feed(input, target)
+		}
+		fmt.Printf("%5d: expect %d, predict %d, error %.4f\n", count, data.Label, predictFromResult(result), result.TotalError)
 	}
 	return saveModel(m)
 }
@@ -127,6 +132,7 @@ func Test(c *cli.Context) (err error) {
 
 	m, err := loadModel()
 	base.NoError(err)
+	m.Init()
 
 	datas := mnist.MnistLoad(filepath.Join(dataPath, test_image), filepath.Join(dataPath, test_label))
 
@@ -143,7 +149,7 @@ func Test(c *cli.Context) (err error) {
 		if predict == uint(data.Label) {
 			correct++
 		}
-		fmt.Printf("%5d: expect %d, predict %d, error rate %.2f%%\n", count, data.Label, predict, 100-float64(correct)/float64(count)*100)
+		fmt.Printf("%5d: expect %d, predict %d, error rate %.4f%%\n", count, data.Label, predict, 100-float64(correct)/float64(count)*100)
 	}
 	return
 }
@@ -193,7 +199,7 @@ func mnistToData(d mnist.MnistData) (input, target base.Data) {
 	target = base.NewData(10)
 
 	input.ForEach(func(index []uint, value float64) {
-		input.SetValue(float64(d.Image[index[0]*28+index[1]]), index...)
+		input.SetValue(float64(d.Image[index[0]*28+index[1]])/255.0, index...)
 	})
 	target.SetValue(1, uint(d.Label))
 	return
