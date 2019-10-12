@@ -11,7 +11,6 @@ type Data interface {
 
 	Fill(value float64) Data // return self
 	ToArray() []float64
-
 	ForEach(f func(index []int, value float64))
 }
 

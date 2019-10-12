@@ -23,14 +23,14 @@ func NewDataN(size ...int) DataN {
 
 func (d DataN) SetValue(value float64, indexes ...int) Data {
 	NoError(d.checkIndex(indexes, true))
-	index := d.indexesToIndex(indexes)
+	index := indexesToIndex(d.size, indexes)
 	d.value[index] = value
 	return d
 }
 
 func (d DataN) GetValue(indexes ...int) float64 {
 	NoError(d.checkIndex(indexes, true))
-	index := d.indexesToIndex(indexes)
+	index := indexesToIndex(d.size, indexes)
 	return d.value[index]
 }
 
@@ -39,7 +39,7 @@ func (d DataN) GetData(indexes ...int) Data {
 	result := NewDataN(size...)
 	startIndexes := make([]int, d.GetDim())
 	copy(startIndexes[:len(indexes)], indexes)
-	startIndex := d.indexesToIndex(startIndexes)
+	startIndex := indexesToIndex(d.size, startIndexes)
 	copy(result.value, d.value[startIndex:startIndex+len(result.value)])
 	return result
 }
@@ -71,7 +71,7 @@ func (d DataN) ToArray() []float64 {
 
 func (d DataN) ForEach(f func(indexes []int, value float64)) {
 	for i, v := range d.value {
-		f(d.indexToIndexes(i), v)
+		f(indexToIndexes(d.size, i), v)
 	}
 }
 
@@ -87,21 +87,21 @@ func (d DataN) checkIndex(indexes []int, match bool) error {
 	return nil
 }
 
-func (d DataN) indexesToIndex(indexes []int) int {
+func indexesToIndex(size []int, indexes []int) int {
 	index := 0
 	for i, v := range indexes {
-		index = d.size[i]*index + v
+		index = size[i]*index + v
 	}
 	return index
 }
 
-func (d DataN) indexToIndexes(index int) []int {
-	result := make([]int, d.GetDim())
-	for i := range d.size {
-		size := d.size[len(d.size)-1-i]
-		left := index % size
-		index = (index - left) / size
-		result[len(d.size)-1-i] = left
+func indexToIndexes(size []int, index int) []int {
+	result := make([]int, len(size))
+	for i := range size {
+		s := size[len(size)-1-i]
+		left := index % s
+		index = (index - left) / s
+		result[len(size)-1-i] = left
 	}
 	return result
 }
