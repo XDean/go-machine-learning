@@ -8,6 +8,9 @@ type DataN struct {
 }
 
 func NewDataN(size ...int) DataN {
+	if size == nil {
+		size = make([]int, 0)
+	}
 	count := 1
 	for _, v := range size {
 		count *= v

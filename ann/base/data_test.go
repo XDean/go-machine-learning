@@ -62,6 +62,11 @@ func TestToDim(t *testing.T) {
 	assert.Equal(t, int(1), d0t5.GetCount())
 	assert.Equal(t, int(5), d0t5.GetDim())
 
+	d2t1 := ToDim(NewData(3, 3), 1)
+	assert.Equal(t, []int{9}, d2t1.GetSize())
+	assert.Equal(t, int(9), d2t1.GetCount())
+	assert.Equal(t, int(1), d2t1.GetDim())
+
 	d3t2 := ToDim(NewData(2, 3, 4), 2)
 	assert.Equal(t, []int{2, 12}, d3t2.GetSize())
 	assert.Equal(t, int(24), d3t2.GetCount())

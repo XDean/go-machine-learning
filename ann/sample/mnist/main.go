@@ -146,7 +146,7 @@ func Test(c *cli.Context) (err error) {
 		count++
 		result := m.Test(mnistToData(data))
 		predict := predictFromResult(result)
-		if predict == uint(data.Label) {
+		if predict == int(data.Label) {
 			correct++
 		}
 		fmt.Printf("%5d: expect %d, predict %d, error rate %.4f%%\n", count, data.Label, predict, 100-float64(correct)/float64(count)*100)
@@ -198,16 +198,16 @@ func mnistToData(d mnist.MnistData) (input, target base.Data) {
 	input = base.NewData(28, 28)
 	target = base.NewData(10)
 
-	input.ForEach(func(index []uint, value float64) {
+	input.ForEach(func(index []int, value float64) {
 		input.SetValue(float64(d.Image[index[0]*28+index[1]])/255.0, index...)
 	})
-	target.SetValue(1, uint(d.Label))
+	target.SetValue(1, int(d.Label))
 	return
 }
 
-func predictFromResult(r model.Result) uint {
-	max := uint(0)
-	r.Output.ForEach(func(index []uint, value float64) {
+func predictFromResult(r model.Result) int {
+	max := int(0)
+	r.Output.ForEach(func(index []int, value float64) {
 		if value > r.Output.GetValue(max) {
 			max = index[0]
 		}

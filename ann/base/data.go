@@ -16,14 +16,7 @@ type Data interface {
 }
 
 func NewData(size ...int) Data {
-	switch len(size) {
-	case 0:
-		return NewData0()
-	case 1:
-		return NewData1(size[0])
-	default:
-		return NewDataN(size...)
-	}
+	return NewDataN(size...)
 }
 
 func Identity2D(d Data) Data {
@@ -42,11 +35,10 @@ func ToDim(d Data, dim int) Data {
 		panic("Can't zip to dim 0")
 	} else if dim == 1 {
 		result := NewData(d.GetCount())
-		i := int(0)
-		d.ForEach(func(_ []int, value float64) {
-			result.SetValue(value, i)
-			i++
-		})
+		array := d.ToArray()
+		for i, v := range array {
+			result.SetValue(v, i)
+		}
 		return result
 	} else if d.GetDim() == 0 {
 		size := make([]int, dim)

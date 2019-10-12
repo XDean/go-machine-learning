@@ -15,7 +15,7 @@ type (
 		Name      string
 		Layers    []Layer
 		ErrorFunc ErrorFunc
-		InputSize []uint
+		InputSize []int
 	}
 
 	Result struct {

@@ -22,7 +22,7 @@ func (r *RandomInit) Name() string {
 }
 
 func (r *RandomInit) Init(data base.Data) base.Data {
-	data.ForEach(func(index []uint, value float64) {
+	data.ForEach(func(index []int, value float64) {
 		v := rand.Float64()
 		if !r.PositiveOnly {
 			v = (v - 0.5) * 2
