@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
 	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"io"
 	"os"
 	"path/filepath"
@@ -95,55 +96,55 @@ func (m *Model) Predict(input base.Data) base.Data {
 
 // Persistent
 func (m *Model) SaveToFile(file string) (err error) {
-	defer base.RecoverNoError(&err)
-	base.NoError(os.MkdirAll(filepath.Dir(file), 0755))
+	defer util.RecoverNoError(&err)
+	util.NoError(os.MkdirAll(filepath.Dir(file), 0755))
 	writer, err := os.Create(file)
-	base.NoError(err)
+	util.NoError(err)
 	defer writer.Close()
 	return m.Save(writer)
 }
 
 func (m *Model) Save(writer io.Writer) (err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
-	base.NoError(encoder.Encode(m.Name))
-	base.NoError(encoder.Encode(m.InputSize))
-	base.NoError(encoder.Encode(len(m.Layers)))
+	util.NoError(encoder.Encode(m.Name))
+	util.NoError(encoder.Encode(m.InputSize))
+	util.NoError(encoder.Encode(len(m.Layers)))
 	for _, v := range m.Layers {
-		base.NoError(persistent.Save(encoder, v))
+		util.NoError(persistent.Save(encoder, v))
 	}
-	base.NoError(persistent.Save(encoder, m.ErrorFunc))
+	util.NoError(persistent.Save(encoder, m.ErrorFunc))
 	return nil
 }
 
 func (m *Model) LoadFromFile(file string) (err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	reader, err := os.Open(file)
-	base.NoError(err)
+	util.NoError(err)
 	defer reader.Close()
 	return m.Load(reader)
 }
 
 func (m *Model) Load(reader io.Reader) (err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
-	base.NoError(decoder.Decode(&m.Name))
-	base.NoError(decoder.Decode(&m.InputSize))
+	util.NoError(decoder.Decode(&m.Name))
+	util.NoError(decoder.Decode(&m.InputSize))
 	layers := make([]Layer, 0)
 	count := 0
-	base.NoError(decoder.Decode(&count))
+	util.NoError(decoder.Decode(&count))
 	for ; count > 0; count-- {
 		bean, err := persistent.Load(decoder)
-		base.NoError(err)
+		util.NoError(err)
 		layer, ok := bean.(Layer)
 		if !ok {
 			return persistent.TypeError("Layer", bean)
 		}
-		base.NoError(bean.Load(decoder))
+		util.NoError(bean.Load(decoder))
 		layers = append(layers, layer)
 	}
 	bean, err := persistent.Load(decoder)
-	base.NoError(err)
+	util.NoError(err)
 
 	errorFunc, ok := bean.(ErrorFunc)
 	if !ok {

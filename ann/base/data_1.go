@@ -1,22 +1,24 @@
 package base
 
+import "github.com/XDean/go-machine-learning/ann/util"
+
 type Data1 struct {
 	len   int
 	value []float64
 }
 
-func NewData1(len int) Data1 {
+func NewData1(len int) Data {
 	return Data1{len: len, value: make([]float64, len)}
 }
 
 func (d Data1) SetValue(value float64, indexes ...int) Data {
-	MustTrue(len(indexes) == 1)
+	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	d.value[indexes[0]] = value
 	return d
 }
 
 func (d Data1) GetValue(indexes ...int) float64 {
-	MustTrue(len(indexes) == 1)
+	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	return d.value[indexes[0]]
 }
 

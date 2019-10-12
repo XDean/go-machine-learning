@@ -6,7 +6,12 @@ import (
 )
 
 func TestData0(t *testing.T) {
-	d := NewData0()
+	testData0(t, NewData0)
+	testData0_Panic(t, NewData0)
+}
+
+func testData0(t *testing.T, df func() Data) {
+	d := df()
 	d.SetValue(1)
 	assert.Equal(t, 1.0, d.GetValue())
 	assert.Equal(t, d, d.GetData())
@@ -20,14 +25,17 @@ func TestData0(t *testing.T) {
 
 	assert.Equal(t, []float64{100}, d.ToArray())
 
+	hit := 0
 	d.ForEach(func(index []int, value float64) {
+		hit++
 		assert.Equal(t, []int{}, index)
 		assert.Equal(t, 100.0, value)
 	})
+	assert.Equal(t, 1, hit)
 }
 
-func TestData0_Panic(t *testing.T) {
-	d := NewData0()
+func testData0_Panic(t *testing.T, df func() Data) {
+	d := df()
 	assert.Panics(t, func() {
 		d.SetValue(1, 1)
 	})

@@ -1,13 +1,16 @@
 package base
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/XDean/go-machine-learning/ann/util"
+)
 
 type DataN struct {
 	size  []int
 	value []float64
 }
 
-func NewDataN(size ...int) DataN {
+func NewDataN(size ...int) Data {
 	if size == nil {
 		size = make([]int, 0)
 	}
@@ -22,21 +25,21 @@ func NewDataN(size ...int) DataN {
 }
 
 func (d DataN) SetValue(value float64, indexes ...int) Data {
-	NoError(d.checkIndex(indexes, true))
+	util.NoError(checkIndex(d.size, indexes, true))
 	index := indexesToIndex(d.size, indexes)
 	d.value[index] = value
 	return d
 }
 
 func (d DataN) GetValue(indexes ...int) float64 {
-	NoError(d.checkIndex(indexes, true))
+	util.NoError(checkIndex(d.size, indexes, true))
 	index := indexesToIndex(d.size, indexes)
 	return d.value[index]
 }
 
 func (d DataN) GetData(indexes ...int) Data {
 	size := d.size[len(indexes):]
-	result := NewDataN(size...)
+	result := NewDataN(size...).(DataN)
 	startIndexes := make([]int, d.GetDim())
 	copy(startIndexes[:len(indexes)], indexes)
 	startIndex := indexesToIndex(d.size, startIndexes)
@@ -75,13 +78,13 @@ func (d DataN) ForEach(f func(indexes []int, value float64)) {
 	}
 }
 
-func (d DataN) checkIndex(indexes []int, match bool) error {
-	if match && len(indexes) != len(d.size) {
-		return fmt.Errorf("Index not match, actual %d, get %d", len(d.size), len(indexes))
+func checkIndex(size []int, indexes []int, match bool) error {
+	if match && len(indexes) != len(size) {
+		return fmt.Errorf("Index not match, actual %d, get %d", len(size), len(indexes))
 	}
 	for i, v := range indexes {
-		if v >= d.size[i] {
-			return fmt.Errorf("Index out of bound: actual %v, get %v", d.size, indexes)
+		if v >= size[i] {
+			return fmt.Errorf("Index out of bound: actual %v, get %v", size, indexes)
 		}
 	}
 	return nil

@@ -15,7 +15,18 @@ type Data interface {
 }
 
 func NewData(size ...int) Data {
-	return NewDataN(size...)
+	switch len(size) {
+	case 0:
+		return NewData0()
+	case 1:
+		return NewData1(size[0])
+	case 2:
+		return NewData2(size[0], size[1])
+	case 3:
+		return NewData3(size[0], size[1], size[2])
+	default:
+		return NewDataN(size...)
+	}
 }
 
 func Identity2D(d Data) Data {
@@ -25,6 +36,7 @@ func Identity2D(d Data) Data {
 	})
 	return result
 }
+
 func ToDim(d Data, dim int) Data {
 	size := d.GetSize()
 	if len(size) == int(dim) {

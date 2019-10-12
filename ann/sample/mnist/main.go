@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/XDean/go-machine-learning/ann/base"
 	"github.com/XDean/go-machine-learning/ann/model"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"github.com/XDean/go-machine-learning/data/mnist"
 	"github.com/urfave/cli"
 	"log"
@@ -102,11 +103,11 @@ func Show(c *cli.Context) error {
 }
 
 func Train(c *cli.Context) (err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	checkData()
 
 	m, err := loadModel()
-	base.NoError(err)
+	util.NoError(err)
 	m.Init()
 
 	datas := mnist.MnistLoad(filepath.Join(dataPath, train_image), filepath.Join(dataPath, train_label))
@@ -127,11 +128,11 @@ func Train(c *cli.Context) (err error) {
 }
 
 func Test(c *cli.Context) (err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	checkData()
 
 	m, err := loadModel()
-	base.NoError(err)
+	util.NoError(err)
 	m.Init()
 
 	datas := mnist.MnistLoad(filepath.Join(dataPath, test_image), filepath.Join(dataPath, test_label))

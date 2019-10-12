@@ -1,4 +1,4 @@
-package base
+package util
 
 type noerr struct {
 	error

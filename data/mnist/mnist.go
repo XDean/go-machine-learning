@@ -3,7 +3,7 @@ package mnist
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"image"
 	"image/color"
 	"io"
@@ -22,9 +22,9 @@ func MnistLoad(imageFile, labelFile string) <-chan MnistData {
 	go func() {
 		defer close(result)
 		images, err := os.Open(imageFile)
-		base.NoError(err)
+		util.NoError(err)
 		labels, err := os.Open(labelFile)
-		base.NoError(err)
+		util.NoError(err)
 
 		imageChan := readImageFile(images)
 		labelChan := readLabelFile(labels)
@@ -56,13 +56,13 @@ func readImageFile(r io.Reader) <-chan []byte {
 		row   int32
 		col   int32
 	)
-	base.NoError(binary.Read(r, binary.BigEndian, &magic))
+	util.NoError(binary.Read(r, binary.BigEndian, &magic))
 	if magic != imageMagic {
 		panic("unrecognized MNIST image data")
 	}
-	base.NoError(binary.Read(r, binary.BigEndian, &count))
-	base.NoError(binary.Read(r, binary.BigEndian, &row))
-	base.NoError(binary.Read(r, binary.BigEndian, &col))
+	util.NoError(binary.Read(r, binary.BigEndian, &count))
+	util.NoError(binary.Read(r, binary.BigEndian, &row))
+	util.NoError(binary.Read(r, binary.BigEndian, &col))
 	if row != 28 || col != 28 {
 		panic(fmt.Sprintf("unrecognized MNIST image data. Except 28x28, but %dx%d", row, col))
 	}
@@ -73,7 +73,7 @@ func readImageFile(r io.Reader) <-chan []byte {
 		for i := 0; i < int(count); i++ {
 			buffer := make([]byte, pixels)
 			read, err := io.ReadFull(r, buffer)
-			base.NoError(err)
+			util.NoError(err)
 			if read != pixels {
 				panic(io.EOF)
 			}
@@ -87,20 +87,20 @@ func readLabelFile(r io.Reader) <-chan uint8 {
 	const labelMagic = 0x00000801
 
 	var magic int32
-	base.NoError(binary.Read(r, binary.BigEndian, &magic))
+	util.NoError(binary.Read(r, binary.BigEndian, &magic))
 	if magic != labelMagic {
 		panic("unrecognized MNIST label data")
 	}
 
 	var count int32
-	base.NoError(binary.Read(r, binary.BigEndian, &count))
+	util.NoError(binary.Read(r, binary.BigEndian, &count))
 
 	result := make(chan uint8, 5)
 	go func() {
 		defer close(result)
 		for i := int32(0); i < count; i++ {
 			var l uint8
-			base.NoError(binary.Read(r, binary.BigEndian, &l))
+			util.NoError(binary.Read(r, binary.BigEndian, &l))
 			result <- l
 		}
 	}()

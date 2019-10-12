@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/util"
 )
 
 type Persistent interface {
@@ -33,16 +33,16 @@ func New(name string) (Persistent, error) {
 }
 
 func Save(w *gob.Encoder, persistent Persistent) (err error) {
-	defer base.RecoverNoError(&err)
-	base.NoError(w.Encode(persistent.Name()))
-	base.NoError(persistent.Save(w))
+	defer util.RecoverNoError(&err)
+	util.NoError(w.Encode(persistent.Name()))
+	util.NoError(persistent.Save(w))
 	return nil
 }
 
 func Load(w *gob.Decoder) (p Persistent, err error) {
-	defer base.RecoverNoError(&err)
+	defer util.RecoverNoError(&err)
 	name := ""
-	base.NoError(w.Decode(&name))
+	util.NoError(w.Decode(&name))
 	return New(name)
 }
 

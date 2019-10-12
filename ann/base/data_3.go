@@ -1,11 +1,13 @@
 package base
 
+import "github.com/XDean/go-machine-learning/ann/util"
+
 type Data3 struct {
 	x, y, z int
 	value   [][][]float64
 }
 
-func NewData3(x, y, z int) Data3 {
+func NewData3(x, y, z int) Data {
 	result := Data3{
 		x: x, y: y, z: z,
 		value: make([][][]float64, x),
@@ -20,13 +22,13 @@ func NewData3(x, y, z int) Data3 {
 }
 
 func (d Data3) SetValue(value float64, indexes ...int) Data {
-	MustTrue(len(indexes) == 3)
+	util.MustTrue(len(indexes) == 3)
 	d.value[indexes[0]][indexes[1]][indexes[2]] = value
 	return d
 }
 
 func (d Data3) GetValue(indexes ...int) float64 {
-	MustTrue(len(indexes) == 3)
+	util.MustTrue(len(indexes) == 3)
 	return d.value[indexes[0]][indexes[1]][indexes[2]]
 }
 
@@ -35,11 +37,11 @@ func (d Data3) GetData(indexes ...int) Data {
 	case 0:
 		return d
 	case 1:
-		result := NewData2(d.y, d.z)
+		result := NewData2(d.y, d.z).(Data2)
 		copy(result.value, d.value[indexes[0]])
 		return result
 	case 2:
-		result := NewData1(d.z)
+		result := NewData1(d.z).(Data1)
 		copy(result.value, d.value[indexes[0]][indexes[1]])
 		return result
 	case 3:

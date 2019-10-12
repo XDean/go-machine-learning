@@ -3,18 +3,19 @@ package base
 import "fmt"
 
 type DataRecusive struct {
-	Len      uint
-	Children []DataRecusive
-	Value    float64
+	Len      int
+	Children []Data
+	Value    *float64
 }
 
-func NewDataRecusive(ls ...uint) DataRecusive {
+func NewDataRecusive(ls ...int) Data {
 	if len(ls) == 0 {
-		return DataRecusive{Len: 0}
+		value := 0.0
+		return DataRecusive{Len: 0, Value: &value}
 	}
 	d := DataRecusive{
 		Len:      ls[0],
-		Children: make([]DataRecusive, ls[0]),
+		Children: make([]Data, ls[0]),
 	}
 	for i := range d.Children {
 		d.Children[i] = NewDataRecusive(ls[1:]...)
@@ -22,21 +23,17 @@ func NewDataRecusive(ls ...uint) DataRecusive {
 	return d
 }
 
-func (d DataRecusive) IsLeaf() bool {
-	return d.Len == 0
-}
-
-func (d DataRecusive) Fill(value float64) DataRecusive {
-	d.ForEach(func(index []uint, _ float64) {
-		d = d.SetValue(value, index...)
+func (d DataRecusive) Fill(value float64) Data {
+	d.ForEach(func(index []int, _ float64) {
+		d.SetValue(value, index...)
 	})
 	return d
 }
 
-func (d DataRecusive) SetValue(value float64, indexes ...uint) DataRecusive {
+func (d DataRecusive) SetValue(value float64, indexes ...int) Data {
 	if len(indexes) == 0 {
-		if d.IsLeaf() {
-			d.Value = value
+		if d.isValue() {
+			*d.Value = value
 		} else {
 			panic("This is not leaf, can't set")
 		}
@@ -50,10 +47,10 @@ func (d DataRecusive) SetValue(value float64, indexes ...uint) DataRecusive {
 	return d
 }
 
-func (d DataRecusive) GetValue(indexes ...uint) float64 {
+func (d DataRecusive) GetValue(indexes ...int) float64 {
 	if len(indexes) == 0 {
-		if d.IsLeaf() {
-			return d.Value
+		if d.isValue() {
+			return *d.Value
 		} else {
 			panic("This is not leaf, use GetDataRecusive")
 		}
@@ -67,28 +64,28 @@ func (d DataRecusive) GetValue(indexes ...uint) float64 {
 	}
 }
 
-func (d DataRecusive) GetDataRecusive(indexes ...uint) DataRecusive {
+func (d DataRecusive) GetData(indexes ...int) Data {
 	if len(indexes) == 0 {
 		return d
 	} else {
 		if indexes[0] < d.Len {
 			next := d.Children[indexes[0]]
-			return next.GetDataRecusive(indexes[1:]...)
+			return next.GetData(indexes[1:]...)
 		} else {
 			panic(fmt.Sprintf("GetDataRecusive: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }
 
-func (d DataRecusive) GetSize() []uint {
+func (d DataRecusive) GetSize() []int {
 	if d.Len == 0 {
-		return []uint{}
+		return []int{}
 	} else {
-		return append([]uint{d.Len}, d.Children[0].GetSize()...)
+		return append([]int{d.Len}, d.Children[0].GetSize()...)
 	}
 }
 
-func (d DataRecusive) GetCount() uint {
+func (d DataRecusive) GetCount() int {
 	if d.Len == 0 {
 		return 1
 	} else {
@@ -96,7 +93,7 @@ func (d DataRecusive) GetCount() uint {
 	}
 }
 
-func (d DataRecusive) GetDim() uint {
+func (d DataRecusive) GetDim() int {
 	if d.Len == 0 {
 		return 0
 	} else {
@@ -104,60 +101,33 @@ func (d DataRecusive) GetDim() uint {
 	}
 }
 
-func (d DataRecusive) ForEach(f func(index []uint, value float64)) {
-	if d.IsLeaf() {
-		f(nil, d.Value)
+func (d DataRecusive) ForEach(f func(index []int, value float64)) {
+	if d.isValue() {
+		f([]int{}, *d.Value)
 	} else {
 		for i, v := range d.Children {
-			v.ForEach(func(index []uint, value float64) {
-				f(append([]uint{uint(i)}, index...), value)
+			v.ForEach(func(index []int, value float64) {
+				f(append([]int{int(i)}, index...), value)
 			})
 		}
 	}
 }
 
-func (d DataRecusive) ToDim(dim uint) DataRecusive {
-	size := d.GetSize()
-	if len(size) == int(dim) {
-		return d
-	}
-	if dim == 0 {
-		panic("Can't zip to dim 0")
-	} else if dim == 1 {
-		result := NewDataRecusive(d.GetCount())
-		i := 0
-		d.ForEach(func(index []uint, value float64) {
-			result.Children[i].Value = value
-			i++
-		})
-		return result
-	} else if d.IsLeaf() {
-		result := NewDataRecusive(1)
-		result.Children[0].Value = d.Value
-		result.Children[0] = result.Children[0].ToDim(dim - 1)
-		return result
-	} else {
-		result := NewDataRecusive(d.Len)
-		for i, v := range d.Children {
-			result.Children[i] = v.ToDim(dim - 1)
-		}
-		return result
-	}
-}
-
-func (d DataRecusive) Identity2D() DataRecusive {
-	result := NewDataRecusive(append(d.GetSize(), d.GetSize()...)...)
-	d.ForEach(func(index []uint, value float64) {
-		result.SetValue(1, append(index, index...)...)
-	})
-	return result
-}
-
 func (d DataRecusive) ToArray() []float64 {
-	d1 := d.ToDim(1)
-	result := make([]float64, d1.GetCount())
-	d1.ForEach(func(index []uint, value float64) {
-		result[index[0]] = value
-	})
+	if d.isValue() {
+		return []float64{*d.Value}
+	}
+	count := d.GetCount()
+	result := make([]float64, count)
+	index := 0
+	for _, v := range d.Children {
+		array := v.ToArray()
+		copy(result[index:], array)
+		index += len(array)
+	}
 	return result
+}
+
+func (d DataRecusive) isValue() bool {
+	return d.Len == 0
 }

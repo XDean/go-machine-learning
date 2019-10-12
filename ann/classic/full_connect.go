@@ -5,6 +5,7 @@ import (
 	"github.com/XDean/go-machine-learning/ann/base"
 	. "github.com/XDean/go-machine-learning/ann/model"
 	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"sync"
 )
 
@@ -143,25 +144,25 @@ func (f *FullLayer) GetOutputSize() []int {
 }
 
 func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
-	defer base.RecoverNoError(&err)
-	base.NoError(writer.Encode(f.Size))
-	base.NoError(writer.Encode(f.Weight))
-	base.NoError(writer.Encode(f.Bias))
-	base.NoError(writer.Encode(f.LearningRatio))
-	base.NoError(persistent.Save(writer, f.Activation))
-	base.NoError(persistent.Save(writer, f.WeightInit))
+	defer util.RecoverNoError(&err)
+	util.NoError(writer.Encode(f.Size))
+	util.NoError(writer.Encode(f.Weight))
+	util.NoError(writer.Encode(f.Bias))
+	util.NoError(writer.Encode(f.LearningRatio))
+	util.NoError(persistent.Save(writer, f.Activation))
+	util.NoError(persistent.Save(writer, f.WeightInit))
 	return nil
 }
 
 func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
-	defer base.RecoverNoError(&err)
-	base.NoError(reader.Decode(&f.Size))
-	base.NoError(reader.Decode(&f.Weight))
-	base.NoError(reader.Decode(&f.Bias))
-	base.NoError(reader.Decode(&f.LearningRatio))
+	defer util.RecoverNoError(&err)
+	util.NoError(reader.Decode(&f.Size))
+	util.NoError(reader.Decode(&f.Weight))
+	util.NoError(reader.Decode(&f.Bias))
+	util.NoError(reader.Decode(&f.LearningRatio))
 
 	bean, err := persistent.Load(reader)
-	base.NoError(err)
+	util.NoError(err)
 	if actual, ok := bean.(Activation); ok {
 		f.Activation = actual
 	} else {
@@ -169,7 +170,7 @@ func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
 	}
 
 	bean, err = persistent.Load(reader)
-	base.NoError(err)
+	util.NoError(err)
 	if actual, ok := bean.(WeightInit); ok {
 		f.WeightInit = actual
 	} else {
