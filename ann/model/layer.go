@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/data"
 )
 
 type (
@@ -12,10 +12,10 @@ type (
 		Backward() // call prev
 		Learn()    // call prev
 
-		GetInput() base.Data         // i (prev output)
-		GetOutput() base.Data        // o
-		GetErrorToOutput() base.Data // ∂E / ∂a [output] a
-		GetOutputToInput() base.Data // ∂a / ∂i [output, input] a * i
+		GetInput() data.Data         // i (prev output)
+		GetOutput() data.Data        // o
+		GetErrorToOutput() data.Data // ∂E / ∂a [output] a
+		GetOutputToInput() data.Data // ∂a / ∂i [output, input] a * i
 
 		GetInputSize() []int // nil means no constraint
 		GetOutputSize() []int
@@ -47,7 +47,7 @@ func (bl *BaseLayer) GetNext() Layer {
 	return bl.next
 }
 
-func ErrorToInput(l Layer) base.Data {
+func ErrorToInput(l Layer) data.Data {
 	errorToOutput := l.GetErrorToOutput()
 	outputToInput := l.GetOutputToInput()
 
@@ -55,7 +55,7 @@ func ErrorToInput(l Layer) base.Data {
 	ois := outputToInput.GetSize()
 	size := ois[len(os):]
 
-	errorToInput := base.NewData(size...)
+	errorToInput := data.NewData(size...)
 	errorToInput.ForEach(func(inputIndex []int, value float64) {
 		sum := 0.0
 		errorToOutput.ForEach(func(outputIndex []int, value float64) {

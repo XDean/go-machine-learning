@@ -1,32 +1,32 @@
-package base
+package data
 
 import (
 	"testing"
 )
 
-func TestDataRecursive(t *testing.T) {
+func TestDataReflect(t *testing.T) {
 	testData0(t, func() Data {
-		return NewDataRecusive()
+		return NewDataReflect()
 	})
 	testData0_Panic(t, func() Data {
-		return NewDataRecusive()
+		return NewDataReflect()
 	})
 	testData1(t, func(i int) Data {
-		return NewDataRecusive(i)
+		return NewDataReflect(i)
 	})
 	testData1_Panic(t, func(i int) Data {
-		return NewDataRecusive(i)
+		return NewDataReflect(i)
 	})
 	testData2(t, func(i, j int) Data {
-		return NewDataRecusive(i, j)
+		return NewDataReflect(i, j)
 	})
 	testData2_Panic(t, func(i, j int) Data {
-		return NewDataRecusive(i, j)
+		return NewDataReflect(i, j)
 	})
 	testData3(t, func(i, j, k int) Data {
-		return NewDataRecusive(i, j, k)
+		return NewDataReflect(i, j, k)
 	})
 	testData3_Panic(t, func(i, j, k int) Data {
-		return NewDataRecusive(i, j, k)
+		return NewDataReflect(i, j, k)
 	})
 }

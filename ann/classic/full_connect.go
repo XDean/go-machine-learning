@@ -1,21 +1,21 @@
 package classic
 
 import (
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/data"
 	. "github.com/XDean/go-machine-learning/ann/model"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"sync"
 )
 
 func init() {
-	persistent.Register(NewFullLayer(FullLayerDefaultConfig))
+	persistent.Register(new(FullLayer))
 }
 
 type (
 	FullLayer struct {
 		BaseLayer
 
-		Weight base.Data // a * i
+		Weight data.Data // a * i
 		Bias   float64   // TODO, no learning now
 
 		Size          int
@@ -23,11 +23,11 @@ type (
 		LearningRatio float64
 		WeightInit    WeightInit
 
-		input          base.Data // i * 1
-		output         base.Data // a * 1
-		errorToOutput  base.Data // a * 1, ∂E / ∂a
-		outputToInput  base.Data // a * i, ∂a / ∂i
-		outputToWeight base.Data // a * i, ∂a / ∂w
+		input          data.Data // i * 1
+		output         data.Data // a * 1
+		errorToOutput  data.Data // a * 1, ∂E / ∂a
+		outputToInput  data.Data // a * i, ∂a / ∂i
+		outputToWeight data.Data // a * i, ∂a / ∂w
 	}
 
 	FullLayerConfig struct {
@@ -69,15 +69,15 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 }
 
 func (f *FullLayer) Init() {
-	f.Weight = f.WeightInit.Init(base.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Forward() {
 	f.input = f.GetPrev().GetOutput()
-	f.output = base.NewData(f.Size)
-	f.errorToOutput = base.NewData(f.Size)
-	f.outputToInput = base.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
-	f.outputToWeight = base.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
+	f.output = data.NewData(f.Size)
+	f.errorToOutput = data.NewData(f.Size)
+	f.outputToInput = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
+	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
 
 	wg := sync.WaitGroup{}
 	f.output.ForEach(func(outputIndex []int, _ float64) {
@@ -111,19 +111,19 @@ func (f *FullLayer) Learn() {
 	})
 }
 
-func (f *FullLayer) GetInput() base.Data {
+func (f *FullLayer) GetInput() data.Data {
 	return f.input
 }
 
-func (f *FullLayer) GetOutput() base.Data {
+func (f *FullLayer) GetOutput() data.Data {
 	return f.output
 }
 
-func (f *FullLayer) GetErrorToOutput() base.Data {
+func (f *FullLayer) GetErrorToOutput() data.Data {
 	return f.errorToOutput
 }
 
-func (f *FullLayer) GetOutputToInput() base.Data {
+func (f *FullLayer) GetOutputToInput() data.Data {
 	return f.outputToInput
 }
 

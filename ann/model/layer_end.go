@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/data"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"time"
 )
@@ -10,14 +10,14 @@ type EndLayer struct {
 	BaseLayer
 
 	ErrorFunc ErrorFunc
-	Target    base.Data
+	Target    data.Data
 
-	Input         base.Data
+	Input         data.Data
 	TotalError    float64   // E
-	ErrorToOutput base.Data // ∂E/∂a
+	ErrorToOutput data.Data // ∂E/∂a
 }
 
-func NewEndLayer(errorFunc ErrorFunc, target base.Data) *EndLayer {
+func NewEndLayer(errorFunc ErrorFunc, target data.Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
@@ -50,20 +50,20 @@ func (e *EndLayer) Learn() {
 	// do nothing
 }
 
-func (e *EndLayer) GetInput() base.Data {
+func (e *EndLayer) GetInput() data.Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetOutput() base.Data {
+func (e *EndLayer) GetOutput() data.Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetErrorToOutput() base.Data {
+func (e *EndLayer) GetErrorToOutput() data.Data {
 	return e.ErrorToOutput
 }
 
-func (e *EndLayer) GetOutputToInput() base.Data {
-	return base.Identity2D(e.Input)
+func (e *EndLayer) GetOutputToInput() data.Data {
+	return data.Identity2D(e.Input)
 }
 
 func (e *EndLayer) GetInputSize() []int {

@@ -1,16 +1,16 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/data"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 type StartLayer struct {
 	BaseLayer
-	Input base.Data
+	Input data.Data
 }
 
-func NewStartLayer(input base.Data) *StartLayer {
+func NewStartLayer(input data.Data) *StartLayer {
 	return &StartLayer{Input: input}
 }
 
@@ -42,20 +42,20 @@ func (s *StartLayer) Learn() {
 	// do nothing
 }
 
-func (s *StartLayer) GetInput() base.Data {
+func (s *StartLayer) GetInput() data.Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetOutput() base.Data {
+func (s *StartLayer) GetOutput() data.Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetErrorToOutput() base.Data {
-	return base.NewData()
+func (s *StartLayer) GetErrorToOutput() data.Data {
+	return data.NewData()
 }
 
-func (s *StartLayer) GetOutputToInput() base.Data {
-	return base.Identity2D(s.Input)
+func (s *StartLayer) GetOutputToInput() data.Data {
+	return data.Identity2D(s.Input)
 }
 
 func (s *StartLayer) GetInputSize() []int {

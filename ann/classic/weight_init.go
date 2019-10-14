@@ -1,13 +1,13 @@
 package classic
 
 import (
-	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/data"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math/rand"
 )
 
 type WeightInit interface {
-	Init(data base.Data) base.Data
+	Init(data data.Data) data.Data
 }
 
 func init() {
@@ -19,7 +19,7 @@ type RandomInit struct {
 	Range        float64
 }
 
-func (r *RandomInit) Init(data base.Data) base.Data {
+func (r *RandomInit) Init(data data.Data) data.Data {
 	data.ForEach(func(index []int, value float64) {
 		v := rand.Float64()
 		if !r.PositiveOnly {

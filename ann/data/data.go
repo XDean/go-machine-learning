@@ -1,4 +1,4 @@
-package base
+package data
 
 import (
 	"github.com/XDean/go-machine-learning/ann/persistent"
