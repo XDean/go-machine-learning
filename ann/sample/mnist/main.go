@@ -36,13 +36,13 @@ func main() {
 	limitFlag := cli.IntFlag{
 		Name:        "limit",
 		Usage:       "Limit data count",
-		Destination: &ctx.count,
+		Destination: &ctx.limit,
 	}
 
 	app.Commands = []cli.Command{
 		{
 			Name:   "train",
-			Action: ctx.Train,
+			Action: func(*cli.Context) error { return ctx.Train() },
 			Flags: []cli.Flag{
 				cli.IntFlag{
 					Name: "model",
@@ -55,6 +55,12 @@ func main() {
 					Usage:       "Path to save model. If empty, save to load path.",
 					Destination: &ctx.savePath,
 				},
+				cli.IntFlag{
+					Name:        "repeat",
+					Usage:       "Repeat each train data `n` times",
+					Destination: &ctx.repeat,
+					Value:       1,
+				},
 				loadFlag,
 				dataFlag,
 				limitFlag,
@@ -64,17 +70,17 @@ func main() {
 				{
 					Name:   "show",
 					Usage:  "Show available models",
-					Action: ctx.Show,
+					Action: func(*cli.Context) error { return ctx.Show() },
 				},
 			},
 		},
 		{
 			Name:   "test",
-			Action: ctx.Test,
+			Action: func(*cli.Context) error { return ctx.Test() },
 		},
 		{
 			Name:   "predict",
-			Action: ctx.Predict,
+			Action: func(*cli.Context) error { return ctx.Predict() },
 		},
 	}
 

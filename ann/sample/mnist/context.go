@@ -14,8 +14,9 @@ type Context struct {
 	loadPath string
 	savePath string
 	dataPath string
-	count    int
+	limit    int
 	modelN   int
+	repeat   int
 }
 
 func (c Context) Show() error {
@@ -33,7 +34,7 @@ func (c Context) Train() (err error) {
 	util.NoError(err)
 	m.Init()
 
-	datas := mnist.MnistLoad(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label))
+	datas := mnist.MnistLoad(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)
 	profile := NewProfile(100)
 	for {
 		data, ok := <-datas
@@ -41,7 +42,7 @@ func (c Context) Train() (err error) {
 			break
 		}
 		input, target := mnistToData(data)
-		result := m.FeedTimes(input, target, 5)[1]
+		result := m.FeedTimes(input, target, c.repeat)[0]
 		predict := predictFromResult(result)
 		profile.Add(data.Label == uint8(predict))
 		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
@@ -58,7 +59,7 @@ func (c Context) Test() (err error) {
 	util.NoError(err)
 	m.Init()
 
-	datas := mnist.MnistLoad(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label))
+	datas := mnist.MnistLoad(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label), c.limit)
 
 	count := 0
 	correct := 0

@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"io"
+	"math"
 	"os"
 )
 
@@ -17,7 +18,10 @@ type (
 	}
 )
 
-func MnistLoad(imageFile, labelFile string) <-chan MnistData {
+func MnistLoad(imageFile, labelFile string, limit int) <-chan MnistData {
+	if limit <= 0 {
+		limit = math.MaxInt32
+	}
 	result := make(chan MnistData)
 	go func() {
 		defer close(result)
@@ -28,7 +32,7 @@ func MnistLoad(imageFile, labelFile string) <-chan MnistData {
 
 		imageChan := readImageFile(images)
 		labelChan := readLabelFile(labels)
-		for {
+		for ; limit > 0; limit-- {
 			i, iok := <-imageChan
 			l, lok := <-labelChan
 			if iok == lok {
