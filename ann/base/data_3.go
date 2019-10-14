@@ -88,7 +88,7 @@ func (d Data3) ForEach(f func(index []int, value float64)) {
 	for i := range d.value {
 		for j := range d.value[i] {
 			for k := range d.value[i][j] {
-				f([]int{i, j}, d.value[i][j][k])
+				f([]int{i, j, k}, d.value[i][j][k])
 			}
 		}
 	}

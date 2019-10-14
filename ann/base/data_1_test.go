@@ -31,6 +31,7 @@ func testData1(t *testing.T, df func(int) Data) {
 	hit := 0
 	d.ForEach(func(index []int, value float64) {
 		hit++
+		assert.Equal(t, 1, len(index))
 		assert.Equal(t, 100.0, value)
 	})
 	assert.Equal(t, 3, hit)
