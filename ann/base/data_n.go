@@ -1,7 +1,6 @@
 package base
 
 import (
-	"fmt"
 	"github.com/XDean/go-machine-learning/ann/util"
 )
 
@@ -73,44 +72,13 @@ func (d DataN) ToArray() []float64 {
 }
 
 func (d DataN) ForEach(f func(indexes []int, value float64)) {
-	for i, v := range d.value {
-		f(indexToIndexes(d.size, i), v)
-	}
+	forIndex(d.size, func(i indexPair) {
+		f(i.indexes, d.value[i.index])
+	})
 }
 
 func (d DataN) Map(f func(index []int, value float64) float64) {
-	for i, v := range d.value {
-		d.value[i] = f(indexToIndexes(d.size, i), v)
-	}
-}
-
-func checkIndex(size []int, indexes []int, match bool) error {
-	if match && len(indexes) != len(size) {
-		return fmt.Errorf("Index not match, actual %d, get %d", len(size), len(indexes))
-	}
-	for i, v := range indexes {
-		if v >= size[i] {
-			return fmt.Errorf("Index out of bound: actual %v, get %v", size, indexes)
-		}
-	}
-	return nil
-}
-
-func indexesToIndex(size []int, indexes []int) int {
-	index := 0
-	for i, v := range indexes {
-		index = size[i]*index + v
-	}
-	return index
-}
-
-func indexToIndexes(size []int, index int) []int {
-	result := make([]int, len(size))
-	for i := range size {
-		s := size[len(size)-1-i]
-		left := index % s
-		index = (index - left) / s
-		result[len(size)-1-i] = left
-	}
-	return result
+	forIndex(d.size, func(i indexPair) {
+		d.value[i.index] = f(i.indexes, d.value[i.index])
+	})
 }

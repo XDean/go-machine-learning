@@ -74,17 +74,21 @@ func (d Data2) ToArray() []float64 {
 }
 
 func (d Data2) ForEach(f func(index []int, value float64)) {
+	indexes := []int{0, 0}
 	for i := range d.value {
 		for j := range d.value[i] {
-			f([]int{i, j}, d.value[i][j])
+			indexes[0], indexes[1] = i, j
+			f(indexes, d.value[i][j])
 		}
 	}
 }
 
 func (d Data2) Map(f func(index []int, value float64) float64) {
+	indexes := []int{0, 0}
 	for i := range d.value {
 		for j := range d.value[i] {
-			d.value[i][j] = f([]int{i, j}, d.value[i][j])
+			indexes[0], indexes[1] = i, j
+			d.value[i][j] = f(indexes, d.value[i][j])
 		}
 	}
 }
