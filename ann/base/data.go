@@ -1,6 +1,8 @@
 package base
 
-import "github.com/XDean/go-machine-learning/ann/persistent"
+import (
+	"github.com/XDean/go-machine-learning/ann/persistent"
+)
 
 type Data interface {
 	SetValue(value float64, indexes ...int) Data // return self

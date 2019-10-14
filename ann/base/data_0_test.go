@@ -32,6 +32,18 @@ func testData0(t *testing.T, df func() Data) {
 		assert.Equal(t, 100.0, value)
 	})
 	assert.Equal(t, 1, hit)
+
+	hit = 0
+	d.Map(func(index []int, value float64) float64 {
+		hit++
+		assert.Equal(t, []int{}, index)
+		assert.Equal(t, 100.0, value)
+		return 1.0
+	})
+	assert.Equal(t, 1, hit)
+	d.ForEach(func(index []int, value float64) {
+		assert.Equal(t, 1.0, value)
+	})
 }
 
 func testData0_Panic(t *testing.T, df func() Data) {

@@ -1,6 +1,8 @@
 package base
 
 import (
+	"bytes"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -35,4 +37,21 @@ func TestData_Identity2D(t *testing.T) {
 		0, 0, 1, 0,
 		0, 0, 0, 1}, Identity2D(NewData(2, 2)).ToArray())
 	assert.Equal(t, []float64{1, 0, 0, 1}, Identity2D(NewData(2)).ToArray())
+}
+
+func testSaveLoad(t *testing.T, data Data) {
+	buffer := new(bytes.Buffer)
+
+	encoder := persistent.NewEncoder(buffer)
+	assert.NoError(t, encoder.Encode(&data))
+
+	var newData Data
+
+	decoder := persistent.NewDecoder(buffer)
+	assert.NoError(t, decoder.Decode(&newData))
+
+	assert.Equal(t, data.GetSize(), newData.GetSize())
+	assert.Equal(t, data.GetCount(), newData.GetCount())
+	assert.Equal(t, data.GetDim(), newData.GetDim())
+	assert.Equal(t, data.ToArray(), newData.ToArray())
 }
