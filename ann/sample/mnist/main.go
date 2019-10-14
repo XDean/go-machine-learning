@@ -5,7 +5,9 @@ import (
 	"github.com/XDean/go-machine-learning/ann/model"
 	"github.com/urfave/cli"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
 
 const (
@@ -16,7 +18,7 @@ const (
 )
 
 func main() {
-	//rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().Unix())
 	app := cli.NewApp()
 
 	app.Name = "XDean Go ANN Sample"

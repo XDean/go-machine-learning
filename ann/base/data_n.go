@@ -5,8 +5,8 @@ import (
 )
 
 type DataN struct {
-	size  []int
-	value []float64
+	Size  []int
+	Value []float64
 }
 
 func NewDataN(size ...int) Data {
@@ -18,67 +18,67 @@ func NewDataN(size ...int) Data {
 		count *= v
 	}
 	return DataN{
-		size:  size,
-		value: make([]float64, count),
+		Size:  size,
+		Value: make([]float64, count),
 	}
 }
 
 func (d DataN) SetValue(value float64, indexes ...int) Data {
-	util.NoError(checkIndex(d.size, indexes, true))
-	index := indexesToIndex(d.size, indexes)
-	d.value[index] = value
+	util.NoError(checkIndex(d.Size, indexes, true))
+	index := indexesToIndex(d.Size, indexes)
+	d.Value[index] = value
 	return d
 }
 
 func (d DataN) GetValue(indexes ...int) float64 {
-	util.NoError(checkIndex(d.size, indexes, true))
-	index := indexesToIndex(d.size, indexes)
-	return d.value[index]
+	util.NoError(checkIndex(d.Size, indexes, true))
+	index := indexesToIndex(d.Size, indexes)
+	return d.Value[index]
 }
 
 func (d DataN) GetData(indexes ...int) Data {
-	size := d.size[len(indexes):]
+	size := d.Size[len(indexes):]
 	result := NewDataN(size...).(DataN)
 	startIndexes := make([]int, d.GetDim())
 	copy(startIndexes[:len(indexes)], indexes)
-	startIndex := indexesToIndex(d.size, startIndexes)
-	copy(result.value, d.value[startIndex:startIndex+len(result.value)])
+	startIndex := indexesToIndex(d.Size, startIndexes)
+	copy(result.Value, d.Value[startIndex:startIndex+len(result.Value)])
 	return result
 }
 
 func (d DataN) GetSize() []int {
-	return d.size
+	return d.Size
 }
 
 func (d DataN) GetCount() int {
-	return len(d.value)
+	return len(d.Value)
 }
 
 func (d DataN) GetDim() int {
-	return len(d.size)
+	return len(d.Size)
 }
 
 func (d DataN) Fill(value float64) Data {
-	for i := range d.value {
-		d.value[i] = value
+	for i := range d.Value {
+		d.Value[i] = value
 	}
 	return d
 }
 
 func (d DataN) ToArray() []float64 {
-	result := make([]float64, len(d.value))
-	copy(result, d.value)
+	result := make([]float64, len(d.Value))
+	copy(result, d.Value)
 	return result
 }
 
 func (d DataN) ForEach(f func(indexes []int, value float64)) {
-	forIndex(d.size, func(i indexPair) {
-		f(i.indexes, d.value[i.index])
+	forIndex(d.Size, func(i indexPair) {
+		f(i.indexes, d.Value[i.index])
 	})
 }
 
 func (d DataN) Map(f func(index []int, value float64) float64) {
-	forIndex(d.size, func(i indexPair) {
-		d.value[i.index] = f(i.indexes, d.value[i.index])
+	forIndex(d.Size, func(i indexPair) {
+		d.Value[i.index] = f(i.indexes, d.Value[i.index])
 	})
 }

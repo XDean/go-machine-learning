@@ -2,13 +2,10 @@ package model
 
 import (
 	"github.com/XDean/go-machine-learning/ann/base"
-	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 type (
 	Layer interface {
-		persistent.Persistent
-
 		Init() // after set prev and next
 
 		Forward()  // call next
@@ -30,24 +27,24 @@ type (
 	}
 
 	BaseLayer struct {
-		Prev, Next Layer
+		prev, next Layer
 	}
 )
 
 func (bl *BaseLayer) SetPrev(l Layer) {
-	bl.Prev = l
+	bl.prev = l
 }
 
 func (bl *BaseLayer) SetNext(l Layer) {
-	bl.Next = l
+	bl.next = l
 }
 
 func (bl *BaseLayer) GetPrev() Layer {
-	return bl.Prev
+	return bl.prev
 }
 
 func (bl *BaseLayer) GetNext() Layer {
-	return bl.Next
+	return bl.next
 }
 
 func ErrorToInput(l Layer) base.Data {

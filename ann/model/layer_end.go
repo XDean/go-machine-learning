@@ -1,8 +1,8 @@
 package model
 
 import (
-	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"time"
 )
 
@@ -29,16 +29,16 @@ func (e *EndLayer) Init() {
 	// do nothing
 }
 
-func (e *EndLayer) Save(writer *gob.Encoder) error {
+func (e *EndLayer) Save(writer persistent.Encoder) error {
 	panic("no save")
 }
 
-func (e *EndLayer) Load(reader *gob.Decoder) error {
+func (e *EndLayer) Load(reader persistent.Decoder) error {
 	panic("no load")
 }
 
 func (e *EndLayer) Forward() {
-	e.Input = e.Prev.GetOutput()
+	e.Input = e.prev.GetOutput()
 	e.TotalError, e.ErrorToOutput = e.ErrorFunc.CalcError(e.Target, e.Input)
 }
 

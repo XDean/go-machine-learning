@@ -6,18 +6,10 @@ import (
 )
 
 func init() {
-	persistent.Register(func() persistent.Persistent {
-		return SquareError{}
-	})
+	persistent.Register(SquareError{})
 }
 
-type SquareError struct {
-	persistent.TypePersistent
-}
-
-func (s SquareError) Name() string {
-	return "SquareError"
-}
+type SquareError struct{}
 
 func (s SquareError) CalcError(target, actual base.Data) (error float64, partial base.Data) {
 	partial = base.NewData(actual.GetSize()...)

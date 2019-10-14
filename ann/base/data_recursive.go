@@ -1,8 +1,10 @@
 package base
 
-import "fmt"
+import (
+	"fmt"
+)
 
-type DataRecusive struct {
+type DataRecursive struct {
 	Len      int
 	Children []Data
 	Value    *float64
@@ -11,9 +13,9 @@ type DataRecusive struct {
 func NewDataRecusive(ls ...int) Data {
 	if len(ls) == 0 {
 		value := 0.0
-		return DataRecusive{Len: 0, Value: &value}
+		return DataRecursive{Len: 0, Value: &value}
 	}
-	d := DataRecusive{
+	d := DataRecursive{
 		Len:      ls[0],
 		Children: make([]Data, ls[0]),
 	}
@@ -23,14 +25,14 @@ func NewDataRecusive(ls ...int) Data {
 	return d
 }
 
-func (d DataRecusive) Fill(value float64) Data {
+func (d DataRecursive) Fill(value float64) Data {
 	d.ForEach(func(index []int, _ float64) {
 		d.SetValue(value, index...)
 	})
 	return d
 }
 
-func (d DataRecusive) SetValue(value float64, indexes ...int) Data {
+func (d DataRecursive) SetValue(value float64, indexes ...int) Data {
 	if len(indexes) == 0 {
 		if d.isValue() {
 			*d.Value = value
@@ -47,7 +49,7 @@ func (d DataRecusive) SetValue(value float64, indexes ...int) Data {
 	return d
 }
 
-func (d DataRecusive) GetValue(indexes ...int) float64 {
+func (d DataRecursive) GetValue(indexes ...int) float64 {
 	if len(indexes) == 0 {
 		if d.isValue() {
 			return *d.Value
@@ -64,7 +66,7 @@ func (d DataRecusive) GetValue(indexes ...int) float64 {
 	}
 }
 
-func (d DataRecusive) GetData(indexes ...int) Data {
+func (d DataRecursive) GetData(indexes ...int) Data {
 	if len(indexes) == 0 {
 		return d
 	} else {
@@ -77,7 +79,7 @@ func (d DataRecusive) GetData(indexes ...int) Data {
 	}
 }
 
-func (d DataRecusive) GetSize() []int {
+func (d DataRecursive) GetSize() []int {
 	if d.Len == 0 {
 		return []int{}
 	} else {
@@ -85,7 +87,7 @@ func (d DataRecusive) GetSize() []int {
 	}
 }
 
-func (d DataRecusive) GetCount() int {
+func (d DataRecursive) GetCount() int {
 	if d.Len == 0 {
 		return 1
 	} else {
@@ -93,7 +95,7 @@ func (d DataRecusive) GetCount() int {
 	}
 }
 
-func (d DataRecusive) GetDim() int {
+func (d DataRecursive) GetDim() int {
 	if d.Len == 0 {
 		return 0
 	} else {
@@ -101,7 +103,7 @@ func (d DataRecusive) GetDim() int {
 	}
 }
 
-func (d DataRecusive) ForEach(f func(index []int, value float64)) {
+func (d DataRecursive) ForEach(f func(index []int, value float64)) {
 	if d.isValue() {
 		f([]int{}, *d.Value)
 	} else {
@@ -113,7 +115,7 @@ func (d DataRecusive) ForEach(f func(index []int, value float64)) {
 	}
 }
 
-func (d DataRecusive) Map(f func(index []int, value float64) float64) {
+func (d DataRecursive) Map(f func(index []int, value float64) float64) {
 	if d.isValue() {
 		*d.Value = f([]int{}, *d.Value)
 	} else {
@@ -125,7 +127,7 @@ func (d DataRecusive) Map(f func(index []int, value float64) float64) {
 	}
 }
 
-func (d DataRecusive) ToArray() []float64 {
+func (d DataRecursive) ToArray() []float64 {
 	if d.isValue() {
 		return []float64{*d.Value}
 	}
@@ -140,6 +142,6 @@ func (d DataRecusive) ToArray() []float64 {
 	return result
 }
 
-func (d DataRecusive) isValue() bool {
+func (d DataRecursive) isValue() bool {
 	return d.Len == 0
 }

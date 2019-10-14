@@ -1,8 +1,8 @@
 package model
 
 import (
-	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 type StartLayer struct {
@@ -22,11 +22,11 @@ func (s *StartLayer) Init() {
 	// do nothing
 }
 
-func (s *StartLayer) Save(writer *gob.Encoder) error {
+func (s *StartLayer) Save(writer persistent.Encoder) error {
 	panic("no save")
 }
 
-func (s *StartLayer) Load(reader *gob.Decoder) error {
+func (s *StartLayer) Load(reader persistent.Decoder) error {
 	panic("no load")
 }
 

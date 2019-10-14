@@ -1,5 +1,7 @@
 package base
 
+import "github.com/XDean/go-machine-learning/ann/persistent"
+
 type Data interface {
 	SetValue(value float64, indexes ...int) Data // return self
 	GetValue(indexes ...int) float64
@@ -13,6 +15,15 @@ type Data interface {
 	ToArray() []float64
 	ForEach(f func(index []int, value float64))
 	Map(f func(index []int, value float64) float64)
+}
+
+func init() {
+	persistent.Register(NewData0())
+	persistent.Register(NewData1(1))
+	persistent.Register(NewData2(1, 1))
+	persistent.Register(NewData3(1, 1, 1))
+	persistent.Register(NewDataN())
+	persistent.Register(NewDataRecusive())
 }
 
 func NewData(size ...int) Data {

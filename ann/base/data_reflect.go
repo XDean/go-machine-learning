@@ -5,28 +5,29 @@ import (
 	"reflect"
 )
 
+// gob can't handle this
 type DataReflect struct {
-	size []int
+	Size []int
 
 	// for dim 0
-	value *float64
+	Value *float64
 
 	// for dim 1+
-	ref    reflect.Value
-	actual interface{}
+	Ref    reflect.Value
+	Actual interface{}
 }
 
 func NewDataReflect(ls ...int) DataReflect {
 	if ls == nil {
 		ls = make([]int, 0)
 	}
-	result := DataReflect{size: ls}
+	result := DataReflect{Size: ls}
 	if len(ls) == 0 {
 		value := 0.0
-		result.value = &value
+		result.Value = &value
 	} else {
-		result.ref = makeSlice(ls)
-		result.actual = result.ref.Interface()
+		result.Ref = makeSlice(ls)
+		result.Actual = result.Ref.Interface()
 	}
 	return result
 }
@@ -39,9 +40,9 @@ func (d DataReflect) Fill(value float64) Data {
 }
 
 func (d DataReflect) SetValue(value float64, indexes ...int) Data {
-	util.NoError(checkIndex(d.size, indexes, true))
+	util.NoError(checkIndex(d.Size, indexes, true))
 	if d.isValue() {
-		*d.value = value
+		*d.Value = value
 	} else {
 		d.findByIndex(indexes).SetFloat(value)
 	}
@@ -49,9 +50,9 @@ func (d DataReflect) SetValue(value float64, indexes ...int) Data {
 }
 
 func (d DataReflect) GetValue(indexes ...int) float64 {
-	util.NoError(checkIndex(d.size, indexes, true))
+	util.NoError(checkIndex(d.Size, indexes, true))
 	if d.isValue() {
-		return *d.value
+		return *d.Value
 	} else {
 		return d.findByIndex(indexes).Float()
 	}
@@ -61,8 +62,8 @@ func (d DataReflect) GetData(indexes ...int) Data {
 	if len(indexes) == 0 {
 		return d
 	}
-	util.NoError(checkIndex(d.size, indexes, false))
-	size := d.size[len(indexes):]
+	util.NoError(checkIndex(d.Size, indexes, false))
+	size := d.Size[len(indexes):]
 	result := NewDataReflect(size...)
 	result.ForEach(func(index []int, _ float64) {
 		result.SetValue(d.GetValue(append(indexes, index...)...), index...)
@@ -71,25 +72,25 @@ func (d DataReflect) GetData(indexes ...int) Data {
 }
 
 func (d DataReflect) GetSize() []int {
-	return d.size
+	return d.Size
 }
 
 func (d DataReflect) GetCount() int {
 	count := int(1)
-	for _, v := range d.size {
+	for _, v := range d.Size {
 		count *= v
 	}
 	return count
 }
 
 func (d DataReflect) GetDim() int {
-	return int(len(d.size))
+	return int(len(d.Size))
 }
 
 func (d DataReflect) ForEach(f func(index []int, value float64)) {
 	count := d.GetCount()
 	for i := 0; i < count; i++ {
-		index := indexToIndexes(d.size, i)
+		index := indexToIndexes(d.Size, i)
 		f(index, d.GetValue(index...))
 	}
 }
@@ -98,7 +99,7 @@ func (d DataReflect) ToArray() []float64 {
 	count := d.GetCount()
 	result := make([]float64, count)
 	for i := range result {
-		indexes := indexToIndexes(d.size, count)
+		indexes := indexToIndexes(d.Size, count)
 		result[i] = d.GetValue(indexes...)
 	}
 	return result
@@ -106,11 +107,11 @@ func (d DataReflect) ToArray() []float64 {
 
 func (d DataReflect) Map(f func(index []int, value float64) float64) {
 	if d.isValue() {
-		*d.value = f([]int{}, *d.value)
+		*d.Value = f([]int{}, *d.Value)
 	} else {
 		count := d.GetCount()
 		for i := 0; i < count; i++ {
-			indexes := indexToIndexes(d.size, i)
+			indexes := indexToIndexes(d.Size, i)
 			value := d.findByIndex(indexes)
 			value.SetFloat(f(indexes, value.Float()))
 		}
@@ -118,7 +119,7 @@ func (d DataReflect) Map(f func(index []int, value float64) float64) {
 }
 
 func (d DataReflect) findByIndex(indexes []int) reflect.Value {
-	result := d.ref
+	result := d.Ref
 	for _, index := range indexes {
 		result = result.Index(int(index))
 	}
@@ -126,7 +127,7 @@ func (d DataReflect) findByIndex(indexes []int) reflect.Value {
 }
 
 func (d DataReflect) isValue() bool {
-	return len(d.size) == 0
+	return len(d.Size) == 0
 }
 
 func makeSlice(size []int) reflect.Value {

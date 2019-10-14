@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
-	"github.com/XDean/go-machine-learning/ann/persistent"
 	"github.com/XDean/go-machine-learning/ann/util"
 	"io"
 	"os"
@@ -107,13 +106,7 @@ func (m *Model) SaveToFile(file string) (err error) {
 func (m *Model) Save(writer io.Writer) (err error) {
 	defer util.RecoverNoError(&err)
 	encoder := gob.NewEncoder(writer)
-	util.NoError(encoder.Encode(m.Name))
-	util.NoError(encoder.Encode(m.InputSize))
-	util.NoError(encoder.Encode(len(m.Layers)))
-	for _, v := range m.Layers {
-		util.NoError(persistent.Save(encoder, v))
-	}
-	util.NoError(persistent.Save(encoder, m.ErrorFunc))
+	util.NoError(encoder.Encode(m))
 	return nil
 }
 
@@ -128,31 +121,7 @@ func (m *Model) LoadFromFile(file string) (err error) {
 func (m *Model) Load(reader io.Reader) (err error) {
 	defer util.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
-	util.NoError(decoder.Decode(&m.Name))
-	util.NoError(decoder.Decode(&m.InputSize))
-	layers := make([]Layer, 0)
-	count := 0
-	util.NoError(decoder.Decode(&count))
-	for ; count > 0; count-- {
-		bean, err := persistent.Load(decoder)
-		util.NoError(err)
-		layer, ok := bean.(Layer)
-		if !ok {
-			return persistent.TypeError("Layer", bean)
-		}
-		util.NoError(bean.Load(decoder))
-		layers = append(layers, layer)
-	}
-	bean, err := persistent.Load(decoder)
-	util.NoError(err)
-
-	errorFunc, ok := bean.(ErrorFunc)
-	if !ok {
-		return persistent.TypeError("ErrorFunc", bean)
-	}
-	m.Layers = layers
-	m.ErrorFunc = errorFunc
-	m.Init()
+	util.NoError(decoder.Decode(m))
 	return nil
 }
 

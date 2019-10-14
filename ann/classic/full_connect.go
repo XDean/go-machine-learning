@@ -1,18 +1,14 @@
 package classic
 
 import (
-	"encoding/gob"
 	"github.com/XDean/go-machine-learning/ann/base"
 	. "github.com/XDean/go-machine-learning/ann/model"
 	"github.com/XDean/go-machine-learning/ann/persistent"
-	"github.com/XDean/go-machine-learning/ann/util"
 	"sync"
 )
 
 func init() {
-	persistent.Register(func() persistent.Persistent {
-		return NewFullLayer(FullLayerConfig{})
-	})
+	persistent.Register(NewFullLayer(FullLayerDefaultConfig))
 }
 
 type (
@@ -22,16 +18,16 @@ type (
 		Weight base.Data // a * i
 		Bias   float64   // TODO, no learning now
 
-		Input          base.Data // i * 1
-		Output         base.Data // a * 1
-		ErrorToOutput  base.Data // a * 1, ∂E / ∂a
-		OutputToInput  base.Data // a * i, ∂a / ∂i
-		OutputToWeight base.Data // a * i, ∂a / ∂w
-
 		Size          int
 		Activation    Activation
 		LearningRatio float64
 		WeightInit    WeightInit
+
+		input          base.Data // i * 1
+		output         base.Data // a * 1
+		errorToOutput  base.Data // a * 1, ∂E / ∂a
+		outputToInput  base.Data // a * i, ∂a / ∂i
+		outputToWeight base.Data // a * i, ∂a / ∂w
 	}
 
 	FullLayerConfig struct {
@@ -72,35 +68,31 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 	}
 }
 
-func (f *FullLayer) Name() string {
-	return "Full Connect Layer"
-}
-
 func (f *FullLayer) Init() {
-	f.Weight = f.WeightInit.Init(base.NewData(append([]int{f.Size}, f.Prev.GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(base.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
 }
 
 func (f *FullLayer) Forward() {
-	f.Input = f.Prev.GetOutput()
-	f.Output = base.NewData(f.Size)
-	f.ErrorToOutput = base.NewData(f.Size)
-	f.OutputToInput = base.NewData(append([]int{f.Size}, f.Input.GetSize()...)...)
-	f.OutputToWeight = base.NewData(append([]int{f.Size}, f.Input.GetSize()...)...)
+	f.input = f.GetPrev().GetOutput()
+	f.output = base.NewData(f.Size)
+	f.errorToOutput = base.NewData(f.Size)
+	f.outputToInput = base.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
+	f.outputToWeight = base.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
 
 	wg := sync.WaitGroup{}
-	f.Output.ForEach(func(outputIndex []int, _ float64) {
+	f.output.ForEach(func(outputIndex []int, _ float64) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			net := 0.0
 			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
-				net += w * f.Input.GetValue(inputIndex...)
+				net += w * f.input.GetValue(inputIndex...)
 			})
 			output, partial := f.Activation.Active(net)
-			f.Output.SetValue(output, outputIndex...)
+			f.output.SetValue(output, outputIndex...)
 			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
-				f.OutputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
-				f.OutputToWeight.SetValue(partial*f.Input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
+				f.outputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
+				f.outputToWeight.SetValue(partial*f.input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
 			})
 		}()
 	})
@@ -108,31 +100,31 @@ func (f *FullLayer) Forward() {
 }
 
 func (f *FullLayer) Backward() {
-	f.ErrorToOutput = ErrorToInput(f.Next) // next layer's input is this layer's output
+	f.errorToOutput = ErrorToInput(f.GetNext()) // next layer's input is this layer's output
 }
 
 func (f *FullLayer) Learn() {
 	//fmt.Println("weight", f.Weight.ToArray()[:10])
 	//fmt.Println("ErrorToOutput", f.ErrorToOutput.ToArray()[:10])
 	f.Weight.ForEach(func(index []int, value float64) {
-		f.Weight.SetValue(value-f.LearningRatio*f.ErrorToOutput.GetValue(index[0])*f.OutputToWeight.GetValue(index...), index...)
+		f.Weight.SetValue(value-f.LearningRatio*f.errorToOutput.GetValue(index[0])*f.outputToWeight.GetValue(index...), index...)
 	})
 }
 
 func (f *FullLayer) GetInput() base.Data {
-	return f.Input
+	return f.input
 }
 
 func (f *FullLayer) GetOutput() base.Data {
-	return f.Output
+	return f.output
 }
 
 func (f *FullLayer) GetErrorToOutput() base.Data {
-	return f.ErrorToOutput
+	return f.errorToOutput
 }
 
 func (f *FullLayer) GetOutputToInput() base.Data {
-	return f.OutputToInput
+	return f.outputToInput
 }
 
 func (f *FullLayer) GetInputSize() []int {
@@ -141,40 +133,4 @@ func (f *FullLayer) GetInputSize() []int {
 
 func (f *FullLayer) GetOutputSize() []int {
 	return []int{f.Size}
-}
-
-func (f *FullLayer) Save(writer *gob.Encoder) (err error) {
-	defer util.RecoverNoError(&err)
-	util.NoError(writer.Encode(f.Size))
-	util.NoError(writer.Encode(f.Weight))
-	util.NoError(writer.Encode(f.Bias))
-	util.NoError(writer.Encode(f.LearningRatio))
-	util.NoError(persistent.Save(writer, f.Activation))
-	util.NoError(persistent.Save(writer, f.WeightInit))
-	return nil
-}
-
-func (f *FullLayer) Load(reader *gob.Decoder) (err error) {
-	defer util.RecoverNoError(&err)
-	util.NoError(reader.Decode(&f.Size))
-	util.NoError(reader.Decode(&f.Weight))
-	util.NoError(reader.Decode(&f.Bias))
-	util.NoError(reader.Decode(&f.LearningRatio))
-
-	bean, err := persistent.Load(reader)
-	util.NoError(err)
-	if actual, ok := bean.(Activation); ok {
-		f.Activation = actual
-	} else {
-		return persistent.TypeError("Activation", bean)
-	}
-
-	bean, err = persistent.Load(reader)
-	util.NoError(err)
-	if actual, ok := bean.(WeightInit); ok {
-		f.WeightInit = actual
-	} else {
-		return persistent.TypeError("WeightInit", bean)
-	}
-	return nil
 }

@@ -1,21 +1,23 @@
 package base
 
-import "github.com/XDean/go-machine-learning/ann/util"
+import (
+	"github.com/XDean/go-machine-learning/ann/util"
+)
 
 type Data3 struct {
-	x, y, z int
-	value   [][][]float64
+	X, Y, Z int
+	Value   [][][]float64
 }
 
 func NewData3(x, y, z int) Data {
 	result := Data3{
-		x: x, y: y, z: z,
-		value: make([][][]float64, x),
+		X: x, Y: y, Z: z,
+		Value: make([][][]float64, x),
 	}
 	for i := 0; i < x; i++ {
-		result.value[i] = make([][]float64, y)
+		result.Value[i] = make([][]float64, y)
 		for j := 0; j < y; j++ {
-			result.value[i][j] = make([]float64, z)
+			result.Value[i][j] = make([]float64, z)
 		}
 	}
 	return result
@@ -23,13 +25,13 @@ func NewData3(x, y, z int) Data {
 
 func (d Data3) SetValue(value float64, indexes ...int) Data {
 	util.MustTrue(len(indexes) == 3)
-	d.value[indexes[0]][indexes[1]][indexes[2]] = value
+	d.Value[indexes[0]][indexes[1]][indexes[2]] = value
 	return d
 }
 
 func (d Data3) GetValue(indexes ...int) float64 {
 	util.MustTrue(len(indexes) == 3)
-	return d.value[indexes[0]][indexes[1]][indexes[2]]
+	return d.Value[indexes[0]][indexes[1]][indexes[2]]
 }
 
 func (d Data3) GetData(indexes ...int) Data {
@@ -37,12 +39,12 @@ func (d Data3) GetData(indexes ...int) Data {
 	case 0:
 		return d
 	case 1:
-		result := NewData2(d.y, d.z).(Data2)
-		copy(result.value, d.value[indexes[0]])
+		result := NewData2(d.Y, d.Z).(Data2)
+		copy(result.Value, d.Value[indexes[0]])
 		return result
 	case 2:
-		result := NewData1(d.z).(Data1)
-		copy(result.value, d.value[indexes[0]][indexes[1]])
+		result := NewData1(d.Z).(Data1)
+		copy(result.Value, d.Value[indexes[0]][indexes[1]])
 		return result
 	case 3:
 		return NewData().SetValue(d.GetValue(indexes...))
@@ -52,11 +54,11 @@ func (d Data3) GetData(indexes ...int) Data {
 }
 
 func (d Data3) GetSize() []int {
-	return []int{d.x, d.y, d.z}
+	return []int{d.X, d.Y, d.Z}
 }
 
 func (d Data3) GetCount() int {
-	return d.x * d.y * d.z
+	return d.X * d.Y * d.Z
 }
 
 func (d Data3) GetDim() int {
@@ -64,10 +66,10 @@ func (d Data3) GetDim() int {
 }
 
 func (d Data3) Fill(value float64) Data {
-	for i := range d.value {
-		for j := range d.value[i] {
-			for k := range d.value[i][j] {
-				d.value[i][j][k] = value
+	for i := range d.Value {
+		for j := range d.Value[i] {
+			for k := range d.Value[i][j] {
+				d.Value[i][j][k] = value
 			}
 		}
 	}
@@ -76,9 +78,9 @@ func (d Data3) Fill(value float64) Data {
 
 func (d Data3) ToArray() []float64 {
 	result := make([]float64, d.GetCount())
-	for i := range d.value {
-		for j := range d.value[i] {
-			copy(result[indexesToIndex(d.GetSize(), []int{i, j}):], d.value[i][j])
+	for i := range d.Value {
+		for j := range d.Value[i] {
+			copy(result[indexesToIndex(d.GetSize(), []int{i, j}):], d.Value[i][j])
 		}
 	}
 	return result
@@ -86,11 +88,11 @@ func (d Data3) ToArray() []float64 {
 
 func (d Data3) ForEach(f func(index []int, value float64)) {
 	index := []int{0, 0, 0}
-	for i := range d.value {
-		for j := range d.value[i] {
-			for k := range d.value[i][j] {
+	for i := range d.Value {
+		for j := range d.Value[i] {
+			for k := range d.Value[i][j] {
 				index[0], index[1], index[2] = i, j, k
-				f(index, d.value[i][j][k])
+				f(index, d.Value[i][j][k])
 			}
 		}
 	}
@@ -98,11 +100,11 @@ func (d Data3) ForEach(f func(index []int, value float64)) {
 
 func (d Data3) Map(f func(index []int, value float64) float64) {
 	index := []int{0, 0, 0}
-	for i := range d.value {
-		for j := range d.value[i] {
-			for k := range d.value[i][j] {
+	for i := range d.Value {
+		for j := range d.Value[i] {
+			for k := range d.Value[i][j] {
 				index[0], index[1], index[2] = i, j, k
-				d.value[i][j][k] = f(index, d.value[i][j][k])
+				d.Value[i][j][k] = f(index, d.Value[i][j][k])
 			}
 		}
 	}

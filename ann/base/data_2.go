@@ -1,32 +1,34 @@
 package base
 
-import "github.com/XDean/go-machine-learning/ann/util"
+import (
+	"github.com/XDean/go-machine-learning/ann/util"
+)
 
 type Data2 struct {
-	x, y  int
-	value [][]float64
+	X, Y  int
+	Value [][]float64
 }
 
 func NewData2(x, y int) Data {
 	result := Data2{
-		x: x, y: y,
-		value: make([][]float64, x),
+		X: x, Y: y,
+		Value: make([][]float64, x),
 	}
 	for i := 0; i < x; i++ {
-		result.value[i] = make([]float64, y)
+		result.Value[i] = make([]float64, y)
 	}
 	return result
 }
 
 func (d Data2) SetValue(value float64, indexes ...int) Data {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
-	d.value[indexes[0]][indexes[1]] = value
+	d.Value[indexes[0]][indexes[1]] = value
 	return d
 }
 
 func (d Data2) GetValue(indexes ...int) float64 {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
-	return d.value[indexes[0]][indexes[1]]
+	return d.Value[indexes[0]][indexes[1]]
 }
 
 func (d Data2) GetData(indexes ...int) Data {
@@ -34,8 +36,8 @@ func (d Data2) GetData(indexes ...int) Data {
 	case 0:
 		return d
 	case 1:
-		result := NewData1(d.y).(Data1)
-		copy(result.value, d.value[indexes[0]])
+		result := NewData1(d.Y).(Data1)
+		copy(result.Value, d.Value[indexes[0]])
 		return result
 	case 2:
 		return NewData().SetValue(d.GetValue(indexes...))
@@ -45,11 +47,11 @@ func (d Data2) GetData(indexes ...int) Data {
 }
 
 func (d Data2) GetSize() []int {
-	return []int{d.x, d.y}
+	return []int{d.X, d.Y}
 }
 
 func (d Data2) GetCount() int {
-	return d.x * d.y
+	return d.X * d.Y
 }
 
 func (d Data2) GetDim() int {
@@ -57,9 +59,9 @@ func (d Data2) GetDim() int {
 }
 
 func (d Data2) Fill(value float64) Data {
-	for i := range d.value {
-		for j := range d.value[i] {
-			d.value[i][j] = value
+	for i := range d.Value {
+		for j := range d.Value[i] {
+			d.Value[i][j] = value
 		}
 	}
 	return d
@@ -67,28 +69,28 @@ func (d Data2) Fill(value float64) Data {
 
 func (d Data2) ToArray() []float64 {
 	result := make([]float64, d.GetCount())
-	for i, v := range d.value {
-		copy(result[i*d.x:], v)
+	for i, v := range d.Value {
+		copy(result[i*d.X:], v)
 	}
 	return result
 }
 
 func (d Data2) ForEach(f func(index []int, value float64)) {
 	indexes := []int{0, 0}
-	for i := range d.value {
-		for j := range d.value[i] {
+	for i := range d.Value {
+		for j := range d.Value[i] {
 			indexes[0], indexes[1] = i, j
-			f(indexes, d.value[i][j])
+			f(indexes, d.Value[i][j])
 		}
 	}
 }
 
 func (d Data2) Map(f func(index []int, value float64) float64) {
 	indexes := []int{0, 0}
-	for i := range d.value {
-		for j := range d.value[i] {
+	for i := range d.Value {
+		for j := range d.Value[i] {
 			indexes[0], indexes[1] = i, j
-			d.value[i][j] = f(indexes, d.value[i][j])
+			d.Value[i][j] = f(indexes, d.Value[i][j])
 		}
 	}
 }
