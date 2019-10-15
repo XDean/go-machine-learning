@@ -69,7 +69,9 @@ func NewFullLayer(config FullLayerConfig) *FullLayer {
 }
 
 func (f *FullLayer) Init() {
-	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
+	if f.Weight == nil {
+		f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
+	}
 }
 
 func (f *FullLayer) Forward() {

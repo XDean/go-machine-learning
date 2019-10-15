@@ -27,6 +27,7 @@ type (
 	}
 
 	BaseLayer struct {
+		Ignore     bool // let gob work
 		prev, next Layer
 	}
 )

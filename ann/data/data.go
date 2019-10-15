@@ -20,12 +20,12 @@ type Data interface {
 }
 
 func init() {
-	persistent.Register(NewData0())
-	persistent.Register(NewData1(1))
-	persistent.Register(NewData2(1, 1))
-	persistent.Register(NewData3(1, 1, 1))
-	persistent.Register(NewDataN())
-	persistent.Register(NewDataRecusive())
+	persistent.Register(Data0{})
+	persistent.Register(Data1{})
+	persistent.Register(Data2{})
+	persistent.Register(Data3{})
+	persistent.Register(DataN{})
+	persistent.Register(DataRecursive{})
 }
 
 func NewData(size ...int) Data {
