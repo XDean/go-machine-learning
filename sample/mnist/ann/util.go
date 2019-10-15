@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/XDean/go-machine-learning/ann/data"
-	"github.com/XDean/go-machine-learning/ann/model"
-	"github.com/XDean/go-machine-learning/data/mnist"
+	"github.com/XDean/go-machine-learning/ann/core/data"
+	"github.com/XDean/go-machine-learning/ann/core/model"
+	"github.com/XDean/go-machine-learning/sample/mnist/data/mnist"
 )
 
-func mnistToData(d mnist.MnistData) (input, target data.Data) {
+func mnistToData(d mnist.Data) (input, target data.Data) {
 	input = data.NewData(28, 28)
 	target = data.NewData(10)
 

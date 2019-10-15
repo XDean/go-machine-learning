@@ -2,7 +2,7 @@ package data
 
 import (
 	"bytes"
-	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/core/persistent"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

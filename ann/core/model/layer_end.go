@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/data"
-	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/core/data"
+	"github.com/XDean/go-machine-learning/ann/core/persistent"
 	"time"
 )
 

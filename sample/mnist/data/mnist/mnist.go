@@ -3,26 +3,17 @@ package mnist
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/util"
-	"image"
-	"image/color"
+	"github.com/XDean/go-machine-learning/ann/core/util"
 	"io"
 	"math"
 	"os"
 )
 
-type (
-	MnistData struct {
-		Image []byte
-		Label uint8
-	}
-)
-
-func MnistLoad(imageFile, labelFile string, limit int) <-chan MnistData {
+func Load(imageFile, labelFile string, limit int) <-chan Data {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
-	result := make(chan MnistData)
+	result := make(chan Data)
 	go func() {
 		defer close(result)
 		images, err := os.Open(imageFile)
@@ -37,7 +28,7 @@ func MnistLoad(imageFile, labelFile string, limit int) <-chan MnistData {
 			l, lok := <-labelChan
 			if iok == lok {
 				if iok {
-					result <- MnistData{
+					result <- Data{
 						Image: i,
 						Label: l,
 					}
@@ -109,19 +100,4 @@ func readLabelFile(r io.Reader) <-chan uint8 {
 		}
 	}()
 	return result
-}
-
-func (m MnistData) ColorModel() color.Model {
-	return color.GrayModel
-}
-
-func (m MnistData) Bounds() image.Rectangle {
-	return image.Rectangle{
-		Min: image.Point{X: 0, Y: 0},
-		Max: image.Point{X: 28, Y: 28},
-	}
-}
-
-func (m MnistData) At(x, y int) color.Color {
-	return color.Gray{Y: m.Image[y*28+x]}
 }

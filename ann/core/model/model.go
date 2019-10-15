@@ -2,8 +2,8 @@ package model
 
 import (
 	"encoding/gob"
-	"github.com/XDean/go-machine-learning/ann/data"
-	"github.com/XDean/go-machine-learning/ann/util"
+	"github.com/XDean/go-machine-learning/ann/core/data"
+	"github.com/XDean/go-machine-learning/ann/core/util"
 	"io"
 	"os"
 	"path/filepath"

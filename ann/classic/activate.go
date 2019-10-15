@@ -1,7 +1,7 @@
 package classic
 
 import (
-	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/core/persistent"
 	"math"
 )
 

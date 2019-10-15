@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/model"
-	"github.com/XDean/go-machine-learning/ann/util"
-	"github.com/XDean/go-machine-learning/data/mnist"
+	"github.com/XDean/go-machine-learning/ann/core/model"
+	"github.com/XDean/go-machine-learning/ann/core/util"
+	"github.com/XDean/go-machine-learning/sample/mnist/data/mnist"
 	"path/filepath"
 	"time"
 )
@@ -34,7 +34,7 @@ func (c Context) Train() (err error) {
 	util.NoError(err)
 	m.Init()
 
-	datas := mnist.MnistLoad(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)
+	datas := mnist.Load(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)
 	profile := NewProfile(100)
 	for {
 		data, ok := <-datas
@@ -59,7 +59,7 @@ func (c Context) Test() (err error) {
 	util.NoError(err)
 	m.Init()
 
-	datas := mnist.MnistLoad(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label), c.limit)
+	datas := mnist.Load(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label), c.limit)
 
 	count := 0
 	correct := 0

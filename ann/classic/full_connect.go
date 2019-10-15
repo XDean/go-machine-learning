@@ -1,9 +1,9 @@
 package classic
 
 import (
-	"github.com/XDean/go-machine-learning/ann/data"
-	. "github.com/XDean/go-machine-learning/ann/model"
-	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/core/data"
+	. "github.com/XDean/go-machine-learning/ann/core/model"
+	"github.com/XDean/go-machine-learning/ann/core/persistent"
 	"sync"
 )
 

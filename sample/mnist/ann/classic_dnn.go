@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/XDean/go-machine-learning/ann/classic"
-	"github.com/XDean/go-machine-learning/ann/model"
+	"github.com/XDean/go-machine-learning/ann/core/model"
 )
 
 func init() {

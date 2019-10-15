@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/model"
+	"github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/urfave/cli"
 	"log"
 	"math/rand"

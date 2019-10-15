@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/XDean/go-machine-learning/ann/util"
+	"github.com/XDean/go-machine-learning/ann/core/util"
 )
 
 type Data2 struct {

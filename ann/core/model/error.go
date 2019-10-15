@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/data"
+	"github.com/XDean/go-machine-learning/ann/core/data"
 )
 
 type ErrorFunc interface {
