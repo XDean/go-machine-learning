@@ -28,7 +28,7 @@ func (c Context) Show() error {
 
 func (c Context) Train() (err error) {
 	defer util.RecoverNoError(&err)
-	c.checkData()
+	util.NoError(c.checkData())
 
 	m, err := c.loadModel()
 	util.NoError(err)
@@ -53,7 +53,7 @@ func (c Context) Train() (err error) {
 
 func (c Context) Test() (err error) {
 	defer util.RecoverNoError(&err)
-	c.checkData()
+	util.NoError(c.checkData())
 
 	m, err := c.loadModel()
 	util.NoError(err)
@@ -61,20 +61,20 @@ func (c Context) Test() (err error) {
 
 	datas := mnist.Load(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label), c.limit)
 
-	count := 0
-	correct := 0
+	profile := NewProfile(100)
 	for {
 		data, ok := <-datas
 		if !ok {
 			break
 		}
-		count++
 		result := m.Test(mnistToData(data))
 		predict := predictFromResult(result)
-		if predict == int(data.Label) {
-			correct++
+		profile.Add(data.Label == uint8(predict))
+		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
+			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, result.Time/time.Millisecond)
+		if c.savePath != "" && predict != int(data.Label) {
+			util.NoError(data.SaveToFile(filepath.Join(c.savePath, fmt.Sprintf("%d-%d-%d.png", profile.Total, data.Label, predict))))
 		}
-		fmt.Printf("%5d: expect %d, predict %d, error rate %.4f%%\n", count, data.Label, predict, 100-float64(correct)/float64(count)*100)
 	}
 	return
 }
@@ -84,10 +84,12 @@ func (c Context) Predict() error {
 	return nil
 }
 
-func (c Context) checkData() {
+func (c Context) checkData() error {
 	if c.dataPath == "" {
-		panic("Data path not specified")
+		return errors.New("Data path not specified")
 	}
+	// TODO check MNIST files
+	return nil
 }
 
 func (c Context) loadModel() (result *model.Model, err error) {

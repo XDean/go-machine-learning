@@ -79,6 +79,16 @@ func main() {
 		{
 			Name:   "test",
 			Action: func(*cli.Context) error { return ctx.Test() },
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:        "export",
+					Usage:       "Export failed images to the folder if this value is not empty. By default, don't export.",
+					Destination: &ctx.savePath,
+				},
+				loadFlag,
+				dataFlag,
+				limitFlag,
+			},
 		},
 		{
 			Name:   "predict",
