@@ -79,11 +79,6 @@ func (c Context) Test() (err error) {
 	return
 }
 
-func (c Context) Predict() error {
-	// TODO
-	return nil
-}
-
 func (c Context) checkData() error {
 	if c.dataPath == "" {
 		return errors.New("Data path not specified")

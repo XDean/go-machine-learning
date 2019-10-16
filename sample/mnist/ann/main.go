@@ -90,10 +90,6 @@ func main() {
 				limitFlag,
 			},
 		},
-		{
-			Name:   "predict",
-			Action: func(*cli.Context) error { return ctx.Predict() },
-		},
 	}
 
 	err := app.Run(os.Args)
