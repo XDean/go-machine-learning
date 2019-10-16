@@ -33,20 +33,12 @@ func indexToIndexes(size []int, index int) []int {
 	return result
 }
 
-type indexPair struct {
-	index   int
-	indexes []int
-}
-
-func forIndex(size []int, f func(indexPair)) {
+func forIndex(size []int, f func(index int, indexes []int)) {
 	len := len(size)
 	index := 0
 	indexes := make([]int, len)
 	for {
-		f(indexPair{
-			index:   index,
-			indexes: indexes,
-		})
+		f(index, indexes)
 		index++
 		add := len - 1
 		for add >= 0 {

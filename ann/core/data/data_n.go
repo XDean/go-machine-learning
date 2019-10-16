@@ -72,13 +72,13 @@ func (d DataN) ToArray() []float64 {
 }
 
 func (d DataN) ForEach(f func(indexes []int, value float64)) {
-	forIndex(d.Size, func(i indexPair) {
-		f(i.indexes, d.Value[i.index])
+	forIndex(d.Size, func(index int, indexes []int) {
+		f(indexes, d.Value[index])
 	})
 }
 
 func (d DataN) Map(f func(index []int, value float64) float64) {
-	forIndex(d.Size, func(i indexPair) {
-		d.Value[i.index] = f(i.indexes, d.Value[i.index])
+	forIndex(d.Size, func(index int, indexes []int) {
+		d.Value[index] = f(indexes, d.Value[index])
 	})
 }
