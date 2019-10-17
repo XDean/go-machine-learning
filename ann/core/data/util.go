@@ -7,7 +7,7 @@ func checkIndex(size []int, indexes []int, match bool) error {
 		return fmt.Errorf("Index not match, actual %d, get %d", len(size), len(indexes))
 	}
 	for i, v := range indexes {
-		if v >= size[i] {
+		if v < 0 || v >= size[i] {
 			return fmt.Errorf("Index out of bound: actual %v, get %v", size, indexes)
 		}
 	}
@@ -57,7 +57,7 @@ func forIndex(size []int, f func(index int, indexes []int)) {
 }
 
 func ForEachSub(d Data, f func(indexes []int, value float64), subIndex ...int) {
-	d.ForEach(func(indexes []int, value float64) {
+	d.ForEachIndex(func(indexes []int, value float64) {
 		for i, v := range subIndex {
 			if indexes[i] != v {
 				return
@@ -68,12 +68,12 @@ func ForEachSub(d Data, f func(indexes []int, value float64), subIndex ...int) {
 }
 
 func MapSub(d Data, f func(indexes []int, value float64) float64, subIndex ...int) {
-	d.Map(func(indexes []int, value float64) float64 {
+	d.MapIndex(func(indexes []int, value float64) float64 {
 		for i, v := range subIndex {
 			if indexes[i] != v {
 				return value
 			}
-			return f(indexes[len(subIndex):], value)
 		}
+		return f(indexes[len(subIndex):], value)
 	})
 }

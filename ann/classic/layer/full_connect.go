@@ -81,17 +81,17 @@ func (f *FullConnect) Forward() {
 	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
 
 	wg := sync.WaitGroup{}
-	f.output.ForEach(func(outputIndex []int, _ float64) {
+	f.output.ForEachIndex(func(outputIndex []int, _ float64) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			net := 0.0
-			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
+			f.Weight.GetData(outputIndex...).ForEachIndex(func(inputIndex []int, w float64) {
 				net += w * f.input.GetValue(inputIndex...)
 			})
 			output, partial := f.Activation.Active(net)
 			f.output.SetValue(output, outputIndex...)
-			f.Weight.GetData(outputIndex...).ForEach(func(inputIndex []int, w float64) {
+			f.Weight.GetData(outputIndex...).ForEachIndex(func(inputIndex []int, w float64) {
 				f.outputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
 				f.outputToWeight.SetValue(partial*f.input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
 			})
@@ -105,7 +105,7 @@ func (f *FullConnect) Backward() {
 }
 
 func (f *FullConnect) Learn() {
-	f.Weight.ForEach(func(index []int, value float64) {
+	f.Weight.ForEachIndex(func(index []int, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.errorToOutput.GetValue(index[0])*f.outputToWeight.GetValue(index...), index...)
 	})
 }

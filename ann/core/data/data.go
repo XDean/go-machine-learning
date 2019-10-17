@@ -15,8 +15,11 @@ type Data interface {
 
 	Fill(value float64) Data // return self
 	ToArray() []float64
-	ForEach(f func(index []int, value float64))
-	Map(f func(index []int, value float64) float64)
+
+	ForEachIndex(f func(index []int, value float64))
+	MapIndex(f func(index []int, value float64) float64)
+	ForEach(f func(value float64))
+	Map(f func(value float64) float64)
 }
 
 func init() {
@@ -45,7 +48,7 @@ func NewData(size ...int) Data {
 
 func Identity2D(d Data) Data {
 	result := NewData(append(d.GetSize(), d.GetSize()...)...)
-	d.ForEach(func(index []int, value float64) {
+	d.ForEachIndex(func(index []int, value float64) {
 		result.SetValue(1, append(index, index...)...)
 	})
 	return result
@@ -77,7 +80,7 @@ func ToDim(d Data, dim int) Data {
 		count := d.GetData(make([]int, dim-1)...).GetCount()
 		result := NewData(append(append([]int{}, size[:dim-1]...), count)...)
 		pre := NewData(append(size[:dim-1])...)
-		pre.ForEach(func(index []int, value float64) {
+		pre.ForEachIndex(func(index []int, value float64) {
 			array := d.GetData(index...).ToArray()
 			for i, v := range array {
 				result.SetValue(v, append(index, int(i))...)

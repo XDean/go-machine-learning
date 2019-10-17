@@ -104,7 +104,7 @@ func (f *Pooling) Forward() {
 		}
 	}()...)...)
 
-	f.output.Map(func(outputIndex []int, _ float64) float64 {
+	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
 		depth := outputIndex[2]
 		maxIndex := []int{0, 0}
 		maxValue := 0.0

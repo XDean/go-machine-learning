@@ -29,7 +29,7 @@ func testData1(t *testing.T, df func(int) Data) {
 	assert.Equal(t, []float64{100, 100, 100}, d.ToArray())
 
 	hit := 0
-	d.ForEach(func(index []int, value float64) {
+	d.ForEachIndex(func(index []int, value float64) {
 		hit++
 		assert.Equal(t, 1, len(index))
 		assert.Equal(t, 100.0, value)
@@ -37,14 +37,14 @@ func testData1(t *testing.T, df func(int) Data) {
 	assert.Equal(t, 3, hit)
 
 	hit = 0
-	d.Map(func(index []int, value float64) float64 {
+	d.MapIndex(func(index []int, value float64) float64 {
 		hit++
 		assert.Equal(t, 1, len(index))
 		assert.Equal(t, 100.0, value)
 		return 1.0
 	})
 	assert.Equal(t, 3, hit)
-	d.ForEach(func(index []int, value float64) {
+	d.ForEachIndex(func(index []int, value float64) {
 		assert.Equal(t, 1.0, value)
 	})
 }

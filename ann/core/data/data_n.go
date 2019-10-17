@@ -71,13 +71,25 @@ func (d DataN) ToArray() []float64 {
 	return result
 }
 
-func (d DataN) ForEach(f func(indexes []int, value float64)) {
+func (d DataN) ForEach(f func(value float64)) {
+	for _, v := range d.Value {
+		f(v)
+	}
+}
+
+func (d DataN) Map(f func(value float64) float64) {
+	for i, v := range d.Value {
+		d.Value[i] = f(v)
+	}
+}
+
+func (d DataN) ForEachIndex(f func(indexes []int, value float64)) {
 	forIndex(d.Size, func(index int, indexes []int) {
 		f(indexes, d.Value[index])
 	})
 }
 
-func (d DataN) Map(f func(index []int, value float64) float64) {
+func (d DataN) MapIndex(f func(index []int, value float64) float64) {
 	forIndex(d.Size, func(index int, indexes []int) {
 		d.Value[index] = f(indexes, d.Value[index])
 	})

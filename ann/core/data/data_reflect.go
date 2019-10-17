@@ -33,7 +33,7 @@ func NewDataReflect(ls ...int) DataReflect {
 }
 
 func (d DataReflect) Fill(value float64) Data {
-	d.ForEach(func(index []int, _ float64) {
+	d.ForEachIndex(func(index []int, _ float64) {
 		d.SetValue(value, index...)
 	})
 	return d
@@ -65,7 +65,7 @@ func (d DataReflect) GetData(indexes ...int) Data {
 	util.NoError(checkIndex(d.Size, indexes, false))
 	size := d.Size[len(indexes):]
 	result := NewDataReflect(size...)
-	result.ForEach(func(index []int, _ float64) {
+	result.ForEachIndex(func(index []int, _ float64) {
 		result.SetValue(d.GetValue(append(indexes, index...)...), index...)
 	})
 	return result
@@ -87,14 +87,6 @@ func (d DataReflect) GetDim() int {
 	return int(len(d.Size))
 }
 
-func (d DataReflect) ForEach(f func(index []int, value float64)) {
-	count := d.GetCount()
-	for i := 0; i < count; i++ {
-		index := indexToIndexes(d.Size, i)
-		f(index, d.GetValue(index...))
-	}
-}
-
 func (d DataReflect) ToArray() []float64 {
 	count := d.GetCount()
 	result := make([]float64, count)
@@ -105,7 +97,36 @@ func (d DataReflect) ToArray() []float64 {
 	return result
 }
 
-func (d DataReflect) Map(f func(index []int, value float64) float64) {
+func (d DataReflect) ForEach(f func(value float64)) {
+	count := d.GetCount()
+	for i := 0; i < count; i++ {
+		index := indexToIndexes(d.Size, i)
+		f(d.GetValue(index...))
+	}
+}
+
+func (d DataReflect) Map(f func(value float64) float64) {
+	if d.isValue() {
+		*d.Value = f(*d.Value)
+	} else {
+		count := d.GetCount()
+		for i := 0; i < count; i++ {
+			indexes := indexToIndexes(d.Size, i)
+			value := d.findByIndex(indexes)
+			value.SetFloat(f(value.Float()))
+		}
+	}
+}
+
+func (d DataReflect) ForEachIndex(f func(index []int, value float64)) {
+	count := d.GetCount()
+	for i := 0; i < count; i++ {
+		index := indexToIndexes(d.Size, i)
+		f(index, d.GetValue(index...))
+	}
+}
+
+func (d DataReflect) MapIndex(f func(index []int, value float64) float64) {
 	if d.isValue() {
 		*d.Value = f([]int{}, *d.Value)
 	} else {

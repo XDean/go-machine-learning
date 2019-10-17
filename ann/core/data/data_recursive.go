@@ -26,7 +26,7 @@ func NewDataRecusive(ls ...int) Data {
 }
 
 func (d DataRecursive) Fill(value float64) Data {
-	d.ForEach(func(index []int, _ float64) {
+	d.ForEachIndex(func(index []int, _ float64) {
 		d.SetValue(value, index...)
 	})
 	return d
@@ -103,24 +103,46 @@ func (d DataRecursive) GetDim() int {
 	}
 }
 
-func (d DataRecursive) ForEach(f func(index []int, value float64)) {
+func (d DataRecursive) ForEach(f func(value float64)) {
+	if d.isValue() {
+		f(*d.Value)
+	} else {
+		for _, v := range d.Children {
+			v.ForEach(func(value float64) {
+				f(value)
+			})
+		}
+	}
+}
+
+func (d DataRecursive) Map(f func(value float64) float64) {
+	if d.isValue() {
+		*d.Value = f(*d.Value)
+	} else {
+		for _, v := range d.Children {
+			v.Map(f)
+		}
+	}
+}
+
+func (d DataRecursive) ForEachIndex(f func(index []int, value float64)) {
 	if d.isValue() {
 		f([]int{}, *d.Value)
 	} else {
 		for i, v := range d.Children {
-			v.ForEach(func(index []int, value float64) {
+			v.ForEachIndex(func(index []int, value float64) {
 				f(append([]int{int(i)}, index...), value)
 			})
 		}
 	}
 }
 
-func (d DataRecursive) Map(f func(index []int, value float64) float64) {
+func (d DataRecursive) MapIndex(f func(index []int, value float64) float64) {
 	if d.isValue() {
 		*d.Value = f([]int{}, *d.Value)
 	} else {
 		for i, v := range d.Children {
-			v.Map(func(index []int, value float64) float64 {
+			v.MapIndex(func(index []int, value float64) float64 {
 				return f(append([]int{int(i)}, index...), value)
 			})
 		}

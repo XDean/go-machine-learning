@@ -50,10 +50,18 @@ func (d Data0) ToArray() []float64 {
 	return []float64{*d.Value}
 }
 
-func (d Data0) ForEach(f func(index []int, value float64)) {
+func (d Data0) ForEach(f func(value float64)) {
+	f(*d.Value)
+}
+
+func (d Data0) Map(f func(value float64) float64) {
+	*d.Value = f(*d.Value)
+}
+
+func (d Data0) ForEachIndex(f func(index []int, value float64)) {
 	f([]int{}, *d.Value)
 }
 
-func (d Data0) Map(f func(index []int, value float64) float64) {
+func (d Data0) MapIndex(f func(index []int, value float64) float64) {
 	*d.Value = f([]int{}, *d.Value)
 }

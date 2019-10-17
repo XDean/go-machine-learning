@@ -1,6 +1,7 @@
 package layer
 
 import (
+	"fmt"
 	. "github.com/XDean/go-machine-learning/ann/classic"
 	"github.com/XDean/go-machine-learning/ann/core/data"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
@@ -33,7 +34,6 @@ type (
 		// H2 = (H1 + 2P - F) / S + 1
 		// D2 = K
 		OutputSize [3]int // W2 * H2 * K
-		noDepth    bool
 
 		input          data.Data // W1 * H1 * D1
 		output         data.Data // W2 * H2 * K
@@ -98,17 +98,8 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 func (f *Convolution) Init() {
 	util.MustTrue(f.KernelSize%2 == 1, "Kernel size must be odd")
 	inputSize := f.GetPrev().GetOutputSize()
-	util.MustTrue(len(inputSize) == 2 || len(inputSize) == 3)
-	switch len(inputSize) {
-	case 2:
-		f.noDepth = true
-		f.InputSize = [3]int{inputSize[0], inputSize[1], 1}
-	case 3:
-		f.noDepth = false
-		f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
-	default:
-		util.MustTrue(false, "Input must be 2 or 3 dim")
-	}
+	util.MustTrue(len(inputSize) == 3)
+	f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
 	f.OutputSize = [3]int{
 		(f.InputSize[0]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 		(f.InputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
@@ -125,15 +116,10 @@ func (f *Convolution) Forward() {
 	f.errorToOutput = data.NewData(f.OutputSize[:]...)
 	f.errorToWeight = data.NewData(f.Weight.GetSize()...)
 	f.outputToWeight = data.NewData(append(f.OutputSize[:], f.Weight.GetSize()...)...)
-	f.outputToInput = data.NewData(append(f.OutputSize[:], func() []int {
-		if f.noDepth {
-			return f.InputSize[:2]
-		} else {
-			return f.InputSize[:]
-		}
-	}()...)...)
+	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...)...)
 
-	f.output.Map(func(outputIndex []int, _ float64) float64 {
+	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
+		fmt.Println(outputIndex)
 		kernel := outputIndex[2]
 		net := 0.0
 		for i := 0; i < f.KernelSize; i++ {
@@ -142,38 +128,32 @@ func (f *Convolution) Forward() {
 					inputX := outputIndex[0] + i - f.Padding
 					inputY := outputIndex[1] + j - f.Padding
 					weight := f.Weight.GetValue(kernel, i, j, z)
-					inputValue := func() (result float64) {
-						if inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1] {
-							return 0.0
-						} else if f.input.GetDim() == 2 {
-							return f.input.GetValue(inputX, inputY)
-						} else {
-							return f.input.GetValue(inputX, inputY, z)
-						}
-					}()
+					isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
+					inputValue := 0.0
+					if !isPadding {
+						inputValue = f.input.GetValue(inputX, inputY, z)
+					}
 					net += inputValue * weight
-					if f.noDepth {
-						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY)...)
-					} else {
+					if !isPadding {
 						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z)...)
 					}
-					f.outputToWeight.SetValue(inputValue, append(outputIndex, i, j, z)...)
+					f.outputToWeight.SetValue(inputValue, append(outputIndex, kernel, i, j, z)...)
 				}
 			}
 		}
 		output, partial := f.Activation.Active(net)
-		f.outputToInput.Map(func(_ []int, value float64) float64 { return value * partial })
-		f.outputToWeight.Map(func(_ []int, value float64) float64 { return value * partial })
+		f.outputToInput.MapIndex(func(_ []int, value float64) float64 { return value * partial })
+		f.outputToWeight.MapIndex(func(_ []int, value float64) float64 { return value * partial })
 		return output
 	})
 }
 
 func (f *Convolution) Backward() {
 	f.errorToOutput = ErrorToInput(f.GetNext())
-	f.errorToWeight.Map(func(weightIndex []int, _ float64) float64 {
+	f.errorToWeight.MapIndex(func(weightIndex []int, _ float64) float64 {
 		kernel := weightIndex[0]
 		sum := 0.0
-		f.errorToOutput.ForEach(func(outputIndex []int, value float64) {
+		f.errorToOutput.ForEachIndex(func(outputIndex []int, value float64) {
 			if outputIndex[2] == kernel {
 				sum += value * f.outputToWeight.GetValue(append(outputIndex, weightIndex...)...)
 			}
@@ -183,7 +163,7 @@ func (f *Convolution) Backward() {
 }
 
 func (f *Convolution) Learn() {
-	f.Weight.Map(func(index []int, value float64) float64 {
+	f.Weight.MapIndex(func(index []int, value float64) float64 {
 		return value - f.LearningRatio*f.errorToWeight.GetValue(index...)
 	})
 }

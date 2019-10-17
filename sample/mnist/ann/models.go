@@ -17,4 +17,22 @@ func init() {
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
 		},
 	})
+
+	RegisterModel(&model.Model{
+		Name:      "Classic CNN",
+		ErrorFunc: classic.SquareError{},
+		InputSize: []int{28, 28},
+		Layers: []model.Layer{
+			layer.NewConvolution(layer.ConvolutionConfig{
+				KernelCount: 10,
+				KernelSize:  3,
+				Padding:     1,
+			}), // 28 * 28 * 10
+			layer.NewPooling(layer.PoolingConfig{
+				Type: layer.POOL_MAX,
+				Size: 2,
+			}), // 27 * 27 * 10
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+		},
+	})
 }

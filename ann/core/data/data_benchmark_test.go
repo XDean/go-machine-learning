@@ -42,7 +42,7 @@ func BenchmarkSlice_Fill(b *testing.B) {
 func BenchmarkData2_ForEach(b *testing.B) {
 	d := NewData2(1000, 1000)
 	for i := 0; i < b.N; i++ {
-		d.ForEach(func(index []int, value float64) {
+		d.ForEachIndex(func(index []int, value float64) {
 			_ = len(index)
 		})
 	}
@@ -51,7 +51,7 @@ func BenchmarkData2_ForEach(b *testing.B) {
 func BenchmarkDataN_ForEach(b *testing.B) {
 	d := NewDataN(1000, 1000)
 	for i := 0; i < b.N; i++ {
-		d.ForEach(func(index []int, value float64) {
+		d.ForEachIndex(func(index []int, value float64) {
 			_ = len(index)
 		})
 	}
@@ -71,7 +71,7 @@ func BenchmarkSlice_ForEach(b *testing.B) {
 func BenchmarkData2_Map(b *testing.B) {
 	d := NewData2(1000, 1000)
 	for n := 0; n < b.N; n++ {
-		d.Map(func(index []int, value float64) float64 {
+		d.MapIndex(func(index []int, value float64) float64 {
 			return float64(index[0] + index[1] + n)
 		})
 	}
@@ -80,7 +80,7 @@ func BenchmarkData2_Map(b *testing.B) {
 func BenchmarkDataN_Map(b *testing.B) {
 	d := NewDataN(1000, 1000)
 	for n := 0; n < b.N; n++ {
-		d.Map(func(index []int, value float64) float64 {
+		d.MapIndex(func(index []int, value float64) float64 {
 			return float64(index[0] + index[1] + n)
 		})
 	}
