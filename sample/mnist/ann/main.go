@@ -101,6 +101,5 @@ func main() {
 var models = make([]*model.Model, 0)
 
 func RegisterModel(m *model.Model) {
-	m.Init()
 	models = append(models, m)
 }

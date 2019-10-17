@@ -88,6 +88,7 @@ func (c Context) checkData() error {
 func (c Context) loadModel() (result *model.Model, err error) {
 	if c.modelN > 0 && c.modelN <= len(models) {
 		result = models[c.modelN-1]
+		result.Init()
 		fmt.Printf("New model: %s\n", result.Name)
 	}
 	if c.loadPath != "" {

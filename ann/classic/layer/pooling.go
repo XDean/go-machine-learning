@@ -28,6 +28,7 @@ type (
 		input         data.Data
 		output        data.Data
 		errorToOutput data.Data // output
+		errorToInput  data.Data // input
 		outputToInput data.Data // output * input
 	}
 
@@ -158,7 +159,8 @@ func (f *Pooling) Forward() {
 }
 
 func (f *Pooling) Backward() {
-	f.errorToOutput = ErrorToInput(f.GetNext())
+	f.errorToOutput = f.GetNext().GetErrorToInput()
+	f.errorToInput = ErrorToInput(f.errorToOutput, f.outputToInput)
 }
 
 func (f *Pooling) Learn() {
@@ -173,12 +175,8 @@ func (f *Pooling) GetOutput() data.Data {
 	return f.output
 }
 
-func (f *Pooling) GetErrorToOutput() data.Data {
-	return f.errorToOutput
-}
-
-func (f *Pooling) GetOutputToInput() data.Data {
-	return f.outputToInput
+func (f *Pooling) GetErrorToInput() data.Data {
+	return f.errorToInput
 }
 
 func (f *Pooling) GetOutputSize() []int {

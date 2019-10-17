@@ -27,6 +27,7 @@ type (
 		input          data.Data // i
 		output         data.Data // a
 		errorToOutput  data.Data // a, ∂E / ∂a
+		errorToInput   data.Data // a, ∂E / ∂a
 		outputToInput  data.Data // a * i, ∂a / ∂i
 		outputToWeight data.Data // a * i, ∂a / ∂w
 	}
@@ -76,7 +77,6 @@ func (f *FullConnect) Init() {
 func (f *FullConnect) Forward() {
 	f.input = f.GetPrev().GetOutput()
 	f.output = data.NewData(f.Size)
-	f.errorToOutput = data.NewData(f.Size)
 	f.outputToInput = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
 	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
 
@@ -101,7 +101,8 @@ func (f *FullConnect) Forward() {
 }
 
 func (f *FullConnect) Backward() {
-	f.errorToOutput = ErrorToInput(f.GetNext()) // next layer's input is this layer's output
+	f.errorToOutput = f.GetNext().GetErrorToInput()
+	f.errorToInput = ErrorToInput(f.errorToOutput, f.outputToInput)
 }
 
 func (f *FullConnect) Learn() {
@@ -118,12 +119,8 @@ func (f *FullConnect) GetOutput() data.Data {
 	return f.output
 }
 
-func (f *FullConnect) GetErrorToOutput() data.Data {
-	return f.errorToOutput
-}
-
-func (f *FullConnect) GetOutputToInput() data.Data {
-	return f.outputToInput
+func (f *FullConnect) GetErrorToInput() data.Data {
+	return f.errorToInput
 }
 
 func (f *FullConnect) GetOutputSize() []int {

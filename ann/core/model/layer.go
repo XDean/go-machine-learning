@@ -12,10 +12,9 @@ type (
 		Backward() // call prev
 		Learn()    // call prev
 
-		GetInput() data.Data         // i (prev output)
-		GetOutput() data.Data        // o
-		GetErrorToOutput() data.Data // ∂E / ∂a [output] a
-		GetOutputToInput() data.Data // ∂a / ∂i [output, input] a * i
+		GetInput() data.Data        // i (prev output)
+		GetOutput() data.Data       // o
+		GetErrorToInput() data.Data // ∂E / ∂a [output] a
 
 		GetOutputSize() []int
 
@@ -47,10 +46,7 @@ func (bl *BaseLayer) GetNext() Layer {
 	return bl.next
 }
 
-func ErrorToInput(l Layer) data.Data {
-	errorToOutput := l.GetErrorToOutput()
-	outputToInput := l.GetOutputToInput()
-
+func ErrorToInput(errorToOutput, outputToInput data.Data) data.Data {
 	os := errorToOutput.GetSize()
 	ois := outputToInput.GetSize()
 	size := ois[len(os):]

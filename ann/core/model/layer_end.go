@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/XDean/go-machine-learning/ann/core/data"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
 	"time"
 )
 
@@ -12,9 +11,9 @@ type EndLayer struct {
 	ErrorFunc ErrorFunc
 	Target    data.Data
 
-	Input         data.Data
-	TotalError    float64   // E
-	ErrorToOutput data.Data // ∂E/∂a
+	Input        data.Data
+	TotalError   float64   // E
+	ErrorToInput data.Data // ∂E/∂a
 }
 
 func NewEndLayer(errorFunc ErrorFunc, target data.Data) *EndLayer {
@@ -29,17 +28,9 @@ func (e *EndLayer) Init() {
 	// do nothing
 }
 
-func (e *EndLayer) Save(writer persistent.Encoder) error {
-	panic("no save")
-}
-
-func (e *EndLayer) Load(reader persistent.Decoder) error {
-	panic("no load")
-}
-
 func (e *EndLayer) Forward() {
 	e.Input = e.prev.GetOutput()
-	e.TotalError, e.ErrorToOutput = e.ErrorFunc.CalcError(e.Target, e.Input)
+	e.TotalError, e.ErrorToInput = e.ErrorFunc.CalcError(e.Target, e.Input)
 }
 
 func (e *EndLayer) Backward() {
@@ -58,12 +49,8 @@ func (e *EndLayer) GetOutput() data.Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetErrorToOutput() data.Data {
-	return e.ErrorToOutput
-}
-
-func (e *EndLayer) GetOutputToInput() data.Data {
-	return data.Identity2D(e.Input)
+func (e *EndLayer) GetErrorToInput() data.Data {
+	return e.ErrorToInput
 }
 
 func (e *EndLayer) SetInputSize() []int {

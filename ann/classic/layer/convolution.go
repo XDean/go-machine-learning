@@ -38,6 +38,7 @@ type (
 		input          data.Data // W1 * H1 * D1
 		output         data.Data // W2 * H2 * K
 		errorToOutput  data.Data // output, ∂E / ∂a
+		errorToInput   data.Data // output, ∂E / ∂a
 		errorToWeight  data.Data // weight, ∂E / ∂w
 		outputToInput  data.Data // output * input, ∂a / ∂i
 		outputToWeight data.Data // output * weight, ∂a / ∂w
@@ -142,14 +143,15 @@ func (f *Convolution) Forward() {
 			}
 		}
 		output, partial := f.Activation.Active(net)
-		f.outputToInput.MapIndex(func(_ []int, value float64) float64 { return value * partial })
-		f.outputToWeight.MapIndex(func(_ []int, value float64) float64 { return value * partial })
+		f.outputToInput.Map(func(value float64) float64 { return value * partial })
+		f.outputToWeight.Map(func(value float64) float64 { return value * partial })
 		return output
 	})
 }
 
 func (f *Convolution) Backward() {
-	f.errorToOutput = ErrorToInput(f.GetNext())
+	f.errorToOutput = f.GetNext().GetErrorToInput()
+	f.errorToInput = ErrorToInput(f.errorToOutput, f.outputToInput)
 	f.errorToWeight.MapIndex(func(weightIndex []int, _ float64) float64 {
 		kernel := weightIndex[0]
 		sum := 0.0
@@ -176,12 +178,8 @@ func (f *Convolution) GetOutput() data.Data {
 	return f.output
 }
 
-func (f *Convolution) GetErrorToOutput() data.Data {
-	return f.errorToOutput
-}
-
-func (f *Convolution) GetOutputToInput() data.Data {
-	return f.outputToInput
+func (f *Convolution) GetErrorToInput() data.Data {
+	return f.errorToInput
 }
 
 func (f *Convolution) GetOutputSize() []int {

@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/XDean/go-machine-learning/ann/core/data"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
 )
 
 type StartLayer struct {
@@ -20,14 +19,6 @@ func (s *StartLayer) Name() string {
 
 func (s *StartLayer) Init() {
 	// do nothing
-}
-
-func (s *StartLayer) Save(writer persistent.Encoder) error {
-	panic("no save")
-}
-
-func (s *StartLayer) Load(reader persistent.Decoder) error {
-	panic("no load")
 }
 
 func (s *StartLayer) Forward() {
@@ -50,16 +41,8 @@ func (s *StartLayer) GetOutput() data.Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetErrorToOutput() data.Data {
+func (s *StartLayer) GetErrorToInput() data.Data {
 	return data.NewData()
-}
-
-func (s *StartLayer) GetOutputToInput() data.Data {
-	return data.Identity2D(s.Input)
-}
-
-func (s *StartLayer) SetInputSize() []int {
-	return s.Input.GetSize()
 }
 
 func (s *StartLayer) GetOutputSize() []int {
