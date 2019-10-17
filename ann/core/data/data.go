@@ -16,8 +16,8 @@ type Data interface {
 	Fill(value float64) Data // return self
 	ToArray() []float64
 
-	ForEachIndex(f func(index []int, value float64))
-	MapIndex(f func(index []int, value float64) float64)
+	ForEachIndex(f func(indexes []int, value float64))
+	MapIndex(f func(indexes []int, value float64) float64)
 	ForEach(f func(value float64))
 	Map(f func(value float64) float64)
 }

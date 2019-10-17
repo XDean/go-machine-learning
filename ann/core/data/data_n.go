@@ -37,13 +37,7 @@ func (d DataN) GetValue(indexes ...int) float64 {
 }
 
 func (d DataN) GetData(indexes ...int) Data {
-	size := d.Size[len(indexes):]
-	result := NewDataN(size...).(DataN)
-	startIndexes := make([]int, d.GetDim())
-	copy(startIndexes[:len(indexes)], indexes)
-	startIndex := indexesToIndex(d.Size, startIndexes)
-	copy(result.Value, d.Value[startIndex:startIndex+len(result.Value)])
-	return result
+	return NewSub(d, indexes)
 }
 
 func (d DataN) GetSize() []int {

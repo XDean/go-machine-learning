@@ -59,16 +59,7 @@ func (d DataReflect) GetValue(indexes ...int) float64 {
 }
 
 func (d DataReflect) GetData(indexes ...int) Data {
-	if len(indexes) == 0 {
-		return d
-	}
-	util.NoError(checkIndex(d.Size, indexes, false))
-	size := d.Size[len(indexes):]
-	result := NewDataReflect(size...)
-	result.ForEachIndex(func(index []int, _ float64) {
-		result.SetValue(d.GetValue(append(indexes, index...)...), index...)
-	})
-	return result
+	return NewSub(d, indexes)
 }
 
 func (d DataReflect) GetSize() []int {
