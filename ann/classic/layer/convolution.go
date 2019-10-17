@@ -84,6 +84,10 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 		config.WeightInit = ConvolutionDefaultConfig.WeightInit
 	}
 	return &Convolution{
+		KernelCount:   config.KernelCount,
+		KernelSize:    config.KernelSize,
+		Stride:        config.Stride,
+		Padding:       config.Padding,
 		Activation:    config.Activation,
 		LearningRatio: config.LearningRatio,
 		WeightInit:    config.WeightInit,
@@ -120,19 +124,28 @@ func (f *Convolution) Forward() {
 	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...)...)
 	f.outputToWeight = data.NewData(append(f.OutputSize[:], f.Weight.GetSize()...)...)
 
-	halfKernelSize := (f.KernelSize - 1) / 2
 	depth := f.InputSize[2]
 	f.output.Map(func(outputIndex []int, _ float64) float64 {
 		kernel := outputIndex[2]
 		net := 0.0
-		for i := -halfKernelSize; i <= halfKernelSize; i++ {
-			for j := -halfKernelSize; j <= halfKernelSize; j++ {
+		for i := 0; i < f.KernelSize; i++ {
+			for j := 0; j < f.KernelSize; j++ {
 				for z := 0; z < depth; z++ {
-					weight := f.Weight.GetValue(kernel, i+halfKernelSize, j+halfKernelSize, z)
-					inputValue := f.input.GetValue(outputIndex[0]+i, outputIndex[1]+j, z)
+					inputX := outputIndex[0] + i - f.Padding
+					inputY := outputIndex[1] + j - f.Padding
+					weight := f.Weight.GetValue(kernel, i, j, z)
+					inputValue := func() (result float64) {
+						if inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1] {
+							return 0.0
+						} else if f.input.GetDim() == 2 {
+							return f.input.GetValue(inputX, inputY)
+						} else {
+							return f.input.GetValue(inputX, inputY, z)
+						}
+					}()
 					net += inputValue * weight
-					f.outputToInput.SetValue(weight, append(outputIndex, outputIndex[0]+i, outputIndex[1]+j, z)...)
-					f.outputToWeight.SetValue(inputValue, append(outputIndex, i+halfKernelSize, j+halfKernelSize, z)...)
+					f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z)...)
+					f.outputToWeight.SetValue(inputValue, append(outputIndex, i, j, z)...)
 				}
 			}
 		}
