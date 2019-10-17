@@ -33,6 +33,7 @@ type (
 		// H2 = (H1 + 2P - F) / S + 1
 		// D2 = K
 		OutputSize [3]int // W2 * H2 * K
+		noDepth    bool
 
 		input          data.Data // W1 * H1 * D1
 		output         data.Data // W2 * H2 * K
@@ -100,8 +101,10 @@ func (f *Convolution) Init() {
 	util.MustTrue(len(inputSize) == 2 || len(inputSize) == 3)
 	switch len(inputSize) {
 	case 2:
+		f.noDepth = true
 		f.InputSize = [3]int{inputSize[0], inputSize[1], 1}
 	case 3:
+		f.noDepth = false
 		f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
 	default:
 		util.MustTrue(false, "Input must be 2 or 3 dim")
@@ -121,16 +124,21 @@ func (f *Convolution) Forward() {
 	f.output = data.NewData(f.OutputSize[:]...)
 	f.errorToOutput = data.NewData(f.OutputSize[:]...)
 	f.errorToWeight = data.NewData(f.Weight.GetSize()...)
-	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...)...)
 	f.outputToWeight = data.NewData(append(f.OutputSize[:], f.Weight.GetSize()...)...)
+	f.outputToInput = data.NewData(append(f.OutputSize[:], func() []int {
+		if f.noDepth {
+			return f.InputSize[:2]
+		} else {
+			return f.InputSize[:]
+		}
+	}()...)...)
 
-	depth := f.InputSize[2]
 	f.output.Map(func(outputIndex []int, _ float64) float64 {
 		kernel := outputIndex[2]
 		net := 0.0
 		for i := 0; i < f.KernelSize; i++ {
 			for j := 0; j < f.KernelSize; j++ {
-				for z := 0; z < depth; z++ {
+				for z := 0; z < f.InputSize[2]; z++ {
 					inputX := outputIndex[0] + i - f.Padding
 					inputY := outputIndex[1] + j - f.Padding
 					weight := f.Weight.GetValue(kernel, i, j, z)
@@ -144,7 +152,11 @@ func (f *Convolution) Forward() {
 						}
 					}()
 					net += inputValue * weight
-					f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z)...)
+					if f.noDepth {
+						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY)...)
+					} else {
+						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z)...)
+					}
 					f.outputToWeight.SetValue(inputValue, append(outputIndex, i, j, z)...)
 				}
 			}
@@ -157,7 +169,7 @@ func (f *Convolution) Forward() {
 }
 
 func (f *Convolution) Backward() {
-	f.errorToOutput = ErrorToInput(f.GetNext()) // next layer's input is this layer's output
+	f.errorToOutput = ErrorToInput(f.GetNext())
 	f.errorToWeight.Map(func(weightIndex []int, _ float64) float64 {
 		kernel := weightIndex[0]
 		sum := 0.0
