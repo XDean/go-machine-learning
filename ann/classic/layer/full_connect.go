@@ -17,16 +17,16 @@ type (
 		BaseLayer
 
 		Weight data.Data // a * i
-		Bias   float64   // TODO, no learning now
+		Bias   float64   // TODO, not used now
 
 		Size          int
 		Activation    Activation
 		LearningRatio float64
 		WeightInit    WeightInit
 
-		input          data.Data // i * 1
-		output         data.Data // a * 1
-		errorToOutput  data.Data // a * 1, ∂E / ∂a
+		input          data.Data // i
+		output         data.Data // a
+		errorToOutput  data.Data // a, ∂E / ∂a
 		outputToInput  data.Data // a * i, ∂a / ∂i
 		outputToWeight data.Data // a * i, ∂a / ∂w
 	}
@@ -40,7 +40,7 @@ type (
 )
 
 var (
-	FullLayerDefaultConfig = FullConnectConfig{
+	FullConnectDefaultConfig = FullConnectConfig{
 		Size:          10,
 		Activation:    Sigmoid{},
 		LearningRatio: 0.1,
@@ -50,16 +50,16 @@ var (
 
 func NewFullConnect(config FullConnectConfig) *FullConnect {
 	if config.Size == 0 {
-		config.Size = FullLayerDefaultConfig.Size
+		config.Size = FullConnectDefaultConfig.Size
 	}
 	if config.Activation == nil {
-		config.Activation = FullLayerDefaultConfig.Activation
+		config.Activation = FullConnectDefaultConfig.Activation
 	}
 	if config.LearningRatio == 0 {
-		config.LearningRatio = FullLayerDefaultConfig.LearningRatio
+		config.LearningRatio = FullConnectDefaultConfig.LearningRatio
 	}
 	if config.WeightInit == nil {
-		config.WeightInit = FullLayerDefaultConfig.WeightInit
+		config.WeightInit = FullConnectDefaultConfig.WeightInit
 	}
 	return &FullConnect{
 		Size:          config.Size,
@@ -70,9 +70,7 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 }
 
 func (f *FullConnect) Init() {
-	if f.Weight == nil {
-		f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
-	}
+	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
 }
 
 func (f *FullConnect) Forward() {
@@ -107,8 +105,6 @@ func (f *FullConnect) Backward() {
 }
 
 func (f *FullConnect) Learn() {
-	//fmt.Println("weight", f.Weight.ToArray()[:10])
-	//fmt.Println("ErrorToOutput", f.ErrorToOutput.ToArray()[:10])
 	f.Weight.ForEach(func(index []int, value float64) {
 		f.Weight.SetValue(value-f.LearningRatio*f.errorToOutput.GetValue(index[0])*f.outputToWeight.GetValue(index...), index...)
 	})
@@ -128,10 +124,6 @@ func (f *FullConnect) GetErrorToOutput() data.Data {
 
 func (f *FullConnect) GetOutputToInput() data.Data {
 	return f.outputToInput
-}
-
-func (f *FullConnect) GetInputSize() []int {
-	return nil
 }
 
 func (f *FullConnect) GetOutputSize() []int {

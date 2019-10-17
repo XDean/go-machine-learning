@@ -58,7 +58,7 @@ func (s *StartLayer) GetOutputToInput() data.Data {
 	return data.Identity2D(s.Input)
 }
 
-func (s *StartLayer) GetInputSize() []int {
+func (s *StartLayer) SetInputSize() []int {
 	return s.Input.GetSize()
 }
 

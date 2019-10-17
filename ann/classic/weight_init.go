@@ -30,3 +30,16 @@ func (r *RandomInit) Init(data data.Data) data.Data {
 	})
 	return data
 }
+
+type NormalInit struct {
+	Mean float64
+	Std  float64
+}
+
+func (r *NormalInit) Init(data data.Data) data.Data {
+	data.Map(func(index []int, _ float64) float64 {
+		v := rand.NormFloat64()
+		return (v * r.Std) + r.Mean
+	})
+	return data
+}

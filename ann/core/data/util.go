@@ -55,3 +55,25 @@ func forIndex(size []int, f func(index int, indexes []int)) {
 		}
 	}
 }
+
+func ForEachSub(d Data, f func(indexes []int, value float64), subIndex ...int) {
+	d.ForEach(func(indexes []int, value float64) {
+		for i, v := range subIndex {
+			if indexes[i] != v {
+				return
+			}
+			f(indexes[len(subIndex):], value)
+		}
+	})
+}
+
+func MapSub(d Data, f func(indexes []int, value float64) float64, subIndex ...int) {
+	d.Map(func(indexes []int, value float64) float64 {
+		for i, v := range subIndex {
+			if indexes[i] != v {
+				return value
+			}
+			return f(indexes[len(subIndex):], value)
+		}
+	})
+}

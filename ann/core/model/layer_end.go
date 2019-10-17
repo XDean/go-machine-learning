@@ -66,7 +66,7 @@ func (e *EndLayer) GetOutputToInput() data.Data {
 	return data.Identity2D(e.Input)
 }
 
-func (e *EndLayer) GetInputSize() []int {
+func (e *EndLayer) SetInputSize() []int {
 	return e.Input.GetSize()
 }
 

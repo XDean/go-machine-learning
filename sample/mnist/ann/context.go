@@ -32,7 +32,6 @@ func (c Context) Train() (err error) {
 
 	m, err := c.loadModel()
 	util.NoError(err)
-	m.Init()
 
 	datas := mnist.Load(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)
 	profile := NewProfile(100)
@@ -57,7 +56,6 @@ func (c Context) Test() (err error) {
 
 	m, err := c.loadModel()
 	util.NoError(err)
-	m.Init()
 
 	datas := mnist.Load(filepath.Join(c.dataPath, test_image), filepath.Join(c.dataPath, test_label), c.limit)
 

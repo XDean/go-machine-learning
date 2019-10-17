@@ -27,21 +27,7 @@ type (
 )
 
 func (m *Model) Init() {
-	start := m.newStart(data.NewData(m.InputSize...))
-	end := m.newEnd(data.NewData(m.lastLayer().GetOutputSize()...))
-	for i, l := range m.Layers {
-		if i == 0 {
-			l.SetPrev(start)
-		} else {
-			l.SetPrev(m.Layers[i-1])
-		}
-		if i == len(m.Layers)-1 {
-			l.SetNext(end)
-		} else {
-			l.SetNext(m.Layers[i+1])
-		}
-		l.Init()
-	}
+	m.init(true)
 }
 
 func (m *Model) FeedTimes(input, target data.Data, times int) []Result {
@@ -122,6 +108,7 @@ func (m *Model) Load(reader io.Reader) (err error) {
 	defer util.RecoverNoError(&err)
 	decoder := gob.NewDecoder(reader)
 	util.NoError(decoder.Decode(m))
+	m.init(false)
 	return nil
 }
 
@@ -173,4 +160,28 @@ func (m *Model) learn() {
 	m.forLayerReverse(func(i int, layer Layer) {
 		layer.Learn()
 	})
+}
+
+func (m *Model) init(initLayer bool) {
+	if initLayer {
+		m.initLayer()
+	}
+}
+
+func (m *Model) initLayer() {
+	start := m.newStart(data.NewData(m.InputSize...))
+	end := m.newEnd(data.NewData(m.lastLayer().GetOutputSize()...))
+	for i, l := range m.Layers {
+		if i == 0 {
+			l.SetPrev(start)
+		} else {
+			l.SetPrev(m.Layers[i-1])
+		}
+		if i == len(m.Layers)-1 {
+			l.SetNext(end)
+		} else {
+			l.SetNext(m.Layers[i+1])
+		}
+		l.Init()
+	}
 }

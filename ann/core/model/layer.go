@@ -17,7 +17,6 @@ type (
 		GetErrorToOutput() data.Data // ∂E / ∂a [output] a
 		GetOutputToInput() data.Data // ∂a / ∂i [output, input] a * i
 
-		GetInputSize() []int // nil means no constraint
 		GetOutputSize() []int
 
 		SetPrev(Layer)
@@ -57,12 +56,12 @@ func ErrorToInput(l Layer) data.Data {
 	size := ois[len(os):]
 
 	errorToInput := data.NewData(size...)
-	errorToInput.ForEach(func(inputIndex []int, value float64) {
+	errorToInput.Map(func(inputIndex []int, value float64) float64 {
 		sum := 0.0
 		errorToOutput.ForEach(func(outputIndex []int, value float64) {
 			sum += value * outputToInput.GetValue(append(outputIndex, inputIndex...)...)
 		})
-		errorToInput.SetValue(sum, inputIndex...)
+		return sum
 	})
 	return errorToInput
 }
