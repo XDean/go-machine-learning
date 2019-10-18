@@ -107,17 +107,17 @@ func (f *Convolution) Init() {
 		f.KernelCount,
 	}
 
-	f.Weight = f.WeightInit.Init(data.NewData(f.KernelCount, f.KernelSize, f.KernelSize, f.InputSize[2]))
+	f.Weight = f.WeightInit.Init(data.NewData([]int{f.KernelCount, f.KernelSize, f.KernelSize, f.InputSize[2]}))
 	f.Bias = make([]float64, f.KernelCount)
 }
 
 func (f *Convolution) Forward() {
 	f.input = f.GetPrev().GetOutput()
-	f.output = data.NewData(f.OutputSize[:]...)
-	f.errorToOutput = data.NewData(f.OutputSize[:]...)
-	f.errorToWeight = data.NewData(f.Weight.GetSize()...)
-	f.outputToWeight = data.NewData(append(f.OutputSize[:], f.Weight.GetSize()...)...)
-	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...)...)
+	f.output = data.NewData(f.OutputSize[:])
+	f.errorToOutput = data.NewData(f.OutputSize[:])
+	f.errorToWeight = data.NewData(f.Weight.GetSize())
+	f.outputToWeight = data.NewData(append(f.OutputSize[:], f.Weight.GetSize()...))
+	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...))
 
 	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
 		fmt.Println(outputIndex)
@@ -128,17 +128,17 @@ func (f *Convolution) Forward() {
 				for z := 0; z < f.InputSize[2]; z++ {
 					inputX := outputIndex[0] + i - f.Padding
 					inputY := outputIndex[1] + j - f.Padding
-					weight := f.Weight.GetValue(kernel, i, j, z)
+					weight := f.Weight.GetValue([]int{kernel, i, j, z})
 					isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
 					inputValue := 0.0
 					if !isPadding {
-						inputValue = f.input.GetValue(inputX, inputY, z)
+						inputValue = f.input.GetValue([]int{inputX, inputY, z})
 					}
 					net += inputValue * weight
 					if !isPadding {
-						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z)...)
+						f.outputToInput.SetValue(weight, append(outputIndex, inputX, inputY, z))
 					}
-					f.outputToWeight.SetValue(inputValue, append(outputIndex, kernel, i, j, z)...)
+					f.outputToWeight.SetValue(inputValue, append(outputIndex, kernel, i, j, z))
 				}
 			}
 		}
@@ -157,7 +157,7 @@ func (f *Convolution) Backward() {
 		sum := 0.0
 		f.errorToOutput.ForEachIndex(func(outputIndex []int, value float64) {
 			if outputIndex[2] == kernel {
-				sum += value * f.outputToWeight.GetValue(append(outputIndex, weightIndex...)...)
+				sum += value * f.outputToWeight.GetValue(append(outputIndex, weightIndex...))
 			}
 		})
 		return sum
@@ -166,7 +166,7 @@ func (f *Convolution) Backward() {
 
 func (f *Convolution) Learn() {
 	f.Weight.MapIndex(func(index []int, value float64) float64 {
-		return value - f.LearningRatio*f.errorToWeight.GetValue(index...)
+		return value - f.LearningRatio*f.errorToWeight.GetValue(index)
 	})
 }
 

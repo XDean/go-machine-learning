@@ -23,18 +23,18 @@ func NewData3(x, y, z int) Data {
 	return result
 }
 
-func (d Data3) SetValue(value float64, indexes ...int) Data {
+func (d Data3) SetValue(value float64, indexes []int) Data {
 	util.MustTrue(len(indexes) == 3)
 	d.Value[indexes[0]][indexes[1]][indexes[2]] = value
 	return d
 }
 
-func (d Data3) GetValue(indexes ...int) float64 {
+func (d Data3) GetValue(indexes []int) float64 {
 	util.MustTrue(len(indexes) == 3)
 	return d.Value[indexes[0]][indexes[1]][indexes[2]]
 }
 
-func (d Data3) GetData(indexes ...int) Data {
+func (d Data3) GetData(indexes []int) Data {
 	switch len(indexes) {
 	case 0:
 		return d
@@ -47,7 +47,7 @@ func (d Data3) GetData(indexes ...int) Data {
 		copy(result.Value, d.Value[indexes[0]][indexes[1]])
 		return result
 	case 3:
-		return NewData().SetValue(d.GetValue(indexes...))
+		return NewData0().SetValue(d.GetValue(indexes), nil)
 	default:
 		panic("Can't get more than 3 dim data from Data3")
 	}

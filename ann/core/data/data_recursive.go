@@ -10,7 +10,7 @@ type DataRecursive struct {
 	Value    *float64
 }
 
-func NewDataRecusive(ls ...int) Data {
+func NewDataRecusive(ls []int) Data {
 	if len(ls) == 0 {
 		value := 0.0
 		return DataRecursive{Len: 0, Value: &value}
@@ -20,19 +20,19 @@ func NewDataRecusive(ls ...int) Data {
 		Children: make([]Data, ls[0]),
 	}
 	for i := range d.Children {
-		d.Children[i] = NewDataRecusive(ls[1:]...)
+		d.Children[i] = NewDataRecusive(ls[1:])
 	}
 	return d
 }
 
 func (d DataRecursive) Fill(value float64) Data {
 	d.ForEachIndex(func(index []int, _ float64) {
-		d.SetValue(value, index...)
+		d.SetValue(value, index)
 	})
 	return d
 }
 
-func (d DataRecursive) SetValue(value float64, indexes ...int) Data {
+func (d DataRecursive) SetValue(value float64, indexes []int) Data {
 	if len(indexes) == 0 {
 		if d.isValue() {
 			*d.Value = value
@@ -41,7 +41,7 @@ func (d DataRecursive) SetValue(value float64, indexes ...int) Data {
 		}
 	} else {
 		if indexes[0] < d.Len {
-			d.Children[indexes[0]] = d.Children[indexes[0]].SetValue(value, indexes[1:]...)
+			d.Children[indexes[0]] = d.Children[indexes[0]].SetValue(value, indexes[1:])
 		} else {
 			panic(fmt.Sprintf("SetValue: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
@@ -49,7 +49,7 @@ func (d DataRecursive) SetValue(value float64, indexes ...int) Data {
 	return d
 }
 
-func (d DataRecursive) GetValue(indexes ...int) float64 {
+func (d DataRecursive) GetValue(indexes []int) float64 {
 	if len(indexes) == 0 {
 		if d.isValue() {
 			return *d.Value
@@ -59,20 +59,20 @@ func (d DataRecursive) GetValue(indexes ...int) float64 {
 	} else {
 		if indexes[0] < d.Len {
 			next := d.Children[indexes[0]]
-			return next.GetValue(indexes[1:]...)
+			return next.GetValue(indexes[1:])
 		} else {
 			panic(fmt.Sprintf("GetValue: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
 }
 
-func (d DataRecursive) GetData(indexes ...int) Data {
+func (d DataRecursive) GetData(indexes []int) Data {
 	if len(indexes) == 0 {
 		return d
 	} else {
 		if indexes[0] < d.Len {
 			next := d.Children[indexes[0]]
-			return next.GetData(indexes[1:]...)
+			return next.GetData(indexes[1:])
 		} else {
 			panic(fmt.Sprintf("GetDataRecusive: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}

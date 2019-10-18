@@ -9,7 +9,7 @@ type DataN struct {
 	Value []float64
 }
 
-func NewDataN(size ...int) Data {
+func NewDataN(size []int) Data {
 	if size == nil {
 		size = make([]int, 0)
 	}
@@ -23,20 +23,20 @@ func NewDataN(size ...int) Data {
 	}
 }
 
-func (d DataN) SetValue(value float64, indexes ...int) Data {
+func (d DataN) SetValue(value float64, indexes []int) Data {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	index := indexesToIndex(d.Size, indexes)
 	d.Value[index] = value
 	return d
 }
 
-func (d DataN) GetValue(indexes ...int) float64 {
+func (d DataN) GetValue(indexes []int) float64 {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	index := indexesToIndex(d.Size, indexes)
 	return d.Value[index]
 }
 
-func (d DataN) GetData(indexes ...int) Data {
+func (d DataN) GetData(indexes []int) Data {
 	return NewSub(d, indexes)
 }
 

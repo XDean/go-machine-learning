@@ -17,7 +17,7 @@ type DataReflect struct {
 	Actual interface{}
 }
 
-func NewDataReflect(ls ...int) DataReflect {
+func NewDataReflect(ls []int) DataReflect {
 	if ls == nil {
 		ls = make([]int, 0)
 	}
@@ -34,12 +34,12 @@ func NewDataReflect(ls ...int) DataReflect {
 
 func (d DataReflect) Fill(value float64) Data {
 	d.ForEachIndex(func(index []int, _ float64) {
-		d.SetValue(value, index...)
+		d.SetValue(value, index)
 	})
 	return d
 }
 
-func (d DataReflect) SetValue(value float64, indexes ...int) Data {
+func (d DataReflect) SetValue(value float64, indexes []int) Data {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	if d.isValue() {
 		*d.Value = value
@@ -49,7 +49,7 @@ func (d DataReflect) SetValue(value float64, indexes ...int) Data {
 	return d
 }
 
-func (d DataReflect) GetValue(indexes ...int) float64 {
+func (d DataReflect) GetValue(indexes []int) float64 {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	if d.isValue() {
 		return *d.Value
@@ -58,7 +58,7 @@ func (d DataReflect) GetValue(indexes ...int) float64 {
 	}
 }
 
-func (d DataReflect) GetData(indexes ...int) Data {
+func (d DataReflect) GetData(indexes []int) Data {
 	return NewSub(d, indexes)
 }
 
@@ -83,7 +83,7 @@ func (d DataReflect) ToArray() []float64 {
 	result := make([]float64, count)
 	for i := range result {
 		indexes := indexToIndexes(d.Size, count)
-		result[i] = d.GetValue(indexes...)
+		result[i] = d.GetValue(indexes)
 	}
 	return result
 }
@@ -92,7 +92,7 @@ func (d DataReflect) ForEach(f func(value float64)) {
 	count := d.GetCount()
 	for i := 0; i < count; i++ {
 		index := indexToIndexes(d.Size, i)
-		f(d.GetValue(index...))
+		f(d.GetValue(index))
 	}
 }
 
@@ -113,7 +113,7 @@ func (d DataReflect) ForEachIndex(f func(index []int, value float64)) {
 	count := d.GetCount()
 	for i := 0; i < count; i++ {
 		index := indexToIndexes(d.Size, i)
-		f(index, d.GetValue(index...))
+		f(index, d.GetValue(index))
 	}
 }
 

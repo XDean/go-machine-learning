@@ -51,11 +51,11 @@ func ErrorToInput(errorToOutput, outputToInput data.Data) data.Data {
 	ois := outputToInput.GetSize()
 	size := ois[len(os):]
 
-	errorToInput := data.NewData(size...)
+	errorToInput := data.NewData(size)
 	errorToInput.MapIndex(func(inputIndex []int, value float64) float64 {
 		sum := 0.0
 		errorToOutput.ForEachIndex(func(outputIndex []int, value float64) {
-			sum += value * outputToInput.GetValue(append(outputIndex, inputIndex...)...)
+			sum += value * outputToInput.GetValue(append(outputIndex, inputIndex...))
 		})
 		return sum
 	})

@@ -13,16 +13,16 @@ func NewSub(actual Data, sub []int) Data {
 	return Sub{Actual: actual, Sub: sub, Size: actual.GetSize()[len(sub):]}
 }
 
-func (d Sub) SetValue(value float64, indexes ...int) Data {
-	d.Actual.SetValue(value, append(d.Sub, indexes...)...)
+func (d Sub) SetValue(value float64, indexes []int) Data {
+	d.Actual.SetValue(value, append(d.Sub, indexes...))
 	return d
 }
 
-func (d Sub) GetValue(indexes ...int) float64 {
-	return d.Actual.GetValue(append(d.Sub, indexes...)...)
+func (d Sub) GetValue(indexes []int) float64 {
+	return d.Actual.GetValue(append(d.Sub, indexes...))
 }
 
-func (d Sub) GetData(indexes ...int) Data {
+func (d Sub) GetData(indexes []int) Data {
 	return NewSub(
 		d.Actual,
 		append(d.Sub, indexes...),
@@ -75,12 +75,12 @@ func (d Sub) Map(f func(value float64) float64) {
 
 func (d Sub) ForEachIndex(f func(indexes []int, value float64)) {
 	forIndex(d.Size, func(index int, indexes []int) {
-		f(append(d.Sub, indexes...), d.GetValue(indexes...))
+		f(append(d.Sub, indexes...), d.GetValue(indexes))
 	})
 }
 
 func (d Sub) MapIndex(f func(index []int, value float64) float64) {
 	forIndex(d.Size, func(index int, indexes []int) {
-		d.SetValue(f(append(d.Sub, indexes...), d.GetValue(indexes...)), indexes...)
+		d.SetValue(f(append(d.Sub, indexes...), d.GetValue(indexes)), indexes)
 	})
 }

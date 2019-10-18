@@ -13,18 +13,18 @@ func NewData0() Data {
 	return Data0{Value: &value}
 }
 
-func (d Data0) SetValue(value float64, indexes ...int) Data {
+func (d Data0) SetValue(value float64, indexes []int) Data {
 	util.MustTrue(len(indexes) == 0)
 	*d.Value = value
 	return d
 }
 
-func (d Data0) GetValue(indexes ...int) float64 {
+func (d Data0) GetValue(indexes []int) float64 {
 	util.MustTrue(len(indexes) == 0)
 	return *d.Value
 }
 
-func (d Data0) GetData(indexes ...int) Data {
+func (d Data0) GetData(indexes []int) Data {
 	util.MustTrue(len(indexes) == 0)
 	return d
 }

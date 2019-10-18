@@ -5,7 +5,6 @@ import (
 	"github.com/XDean/go-machine-learning/ann/core/data"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/XDean/go-machine-learning/ann/core/persistent"
-	"sync"
 )
 
 func init() {
@@ -27,7 +26,7 @@ type (
 		input          data.Data // i
 		output         data.Data // a
 		errorToOutput  data.Data // a, ∂E / ∂a
-		errorToInput   data.Data // a, ∂E / ∂a
+		errorToInput   data.Data // i, ∂E / ∂a
 		outputToInput  data.Data // a * i, ∂a / ∂i
 		outputToWeight data.Data // a * i, ∂a / ∂w
 	}
@@ -71,33 +70,28 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 }
 
 func (f *FullConnect) Init() {
-	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)...))
+	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)))
+
+	f.input = f.GetPrev().GetOutput()
+	f.output = data.NewData1(f.Size)
+	f.outputToInput = data.NewData(append([]int{f.Size}, f.input.GetSize()...))
+	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...))
 }
 
 func (f *FullConnect) Forward() {
-	f.input = f.GetPrev().GetOutput()
-	f.output = data.NewData(f.Size)
-	f.outputToInput = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
-	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...)...)
-
-	wg := sync.WaitGroup{}
-	f.output.ForEachIndex(func(outputIndex []int, _ float64) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			net := 0.0
-			f.Weight.GetData(outputIndex...).ForEachIndex(func(inputIndex []int, w float64) {
-				net += w * f.input.GetValue(inputIndex...)
-			})
-			output, partial := f.Activation.Active(net)
-			f.output.SetValue(output, outputIndex...)
-			f.Weight.GetData(outputIndex...).ForEachIndex(func(inputIndex []int, w float64) {
-				f.outputToInput.SetValue(partial*w, append(outputIndex, inputIndex...)...)
-				f.outputToWeight.SetValue(partial*f.input.GetValue(inputIndex...), append(outputIndex, inputIndex...)...)
-			})
-		}()
+	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
+		net := 0.0
+		f.Weight.GetData(outputIndex).ForEachIndex(func(inputIndex []int, w float64) {
+			net += w * f.input.GetValue(inputIndex)
+			index := append(outputIndex, inputIndex...)
+			f.outputToInput.SetValue(w, index)
+			f.outputToWeight.SetValue(f.input.GetValue(inputIndex), index)
+		})
+		output, partial := f.Activation.Active(net)
+		f.outputToInput.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
+		f.outputToWeight.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
+		return output
 	})
-	wg.Wait()
 }
 
 func (f *FullConnect) Backward() {
@@ -106,8 +100,8 @@ func (f *FullConnect) Backward() {
 }
 
 func (f *FullConnect) Learn() {
-	f.Weight.ForEachIndex(func(index []int, value float64) {
-		f.Weight.SetValue(value-f.LearningRatio*f.errorToOutput.GetValue(index[0])*f.outputToWeight.GetValue(index...), index...)
+	f.Weight.MapIndex(func(index []int, value float64) float64 {
+		return value - f.LearningRatio*f.errorToOutput.GetValue([]int{index[0]})*f.outputToWeight.GetValue(index)
 	})
 }
 

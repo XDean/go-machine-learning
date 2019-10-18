@@ -95,15 +95,15 @@ func (f *Pooling) Init() {
 
 func (f *Pooling) Forward() {
 	f.input = f.GetPrev().GetOutput()
-	f.output = data.NewData(f.OutputSize[:]...)
-	f.errorToOutput = data.NewData(f.OutputSize[:]...)
+	f.output = data.NewData(f.OutputSize[:])
+	f.errorToOutput = data.NewData(f.OutputSize[:])
 	f.outputToInput = data.NewData(append(f.OutputSize[:], func() []int {
 		if f.noDepth {
 			return f.InputSize[:2]
 		} else {
 			return f.InputSize[:]
 		}
-	}()...)...)
+	}()...))
 
 	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
 		depth := outputIndex[2]
@@ -118,9 +118,9 @@ func (f *Pooling) Forward() {
 					if inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1] {
 						return 0.0
 					} else if f.input.GetDim() == 2 {
-						return f.input.GetValue(inputX, inputY)
+						return f.input.GetValue([]int{inputX, inputY})
 					} else {
-						return f.input.GetValue(inputX, inputY, depth)
+						return f.input.GetValue([]int{inputX, inputY, depth})
 					}
 				}()
 				switch f.Type {
@@ -138,20 +138,20 @@ func (f *Pooling) Forward() {
 		switch f.Type {
 		case POOL_MAX:
 			if f.noDepth {
-				f.outputToInput.SetValue(1, append(outputIndex, maxIndex...)...)
+				f.outputToInput.SetValue(1, append(outputIndex, maxIndex...))
 			} else {
-				f.outputToInput.SetValue(1, append(outputIndex, maxIndex[0], maxIndex[1], depth)...)
+				f.outputToInput.SetValue(1, append(outputIndex, maxIndex[0], maxIndex[1], depth))
 			}
 			return maxValue
 		case POOL_AVG:
 			data.MapSub(f.outputToInput, func(indexes []int, value float64) float64 {
 				return 1 / float64(f.Size*f.Size)
-			}, outputIndex...)
+			}, outputIndex)
 			return sum / float64(f.Size*f.Size)
 		case POOL_SUM:
 			data.MapSub(f.outputToInput, func(indexes []int, value float64) float64 {
 				return 1
-			}, outputIndex...)
+			}, outputIndex)
 			return sum
 		}
 		return 0

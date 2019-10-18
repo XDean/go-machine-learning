@@ -169,8 +169,8 @@ func (m *Model) init(initLayer bool) {
 }
 
 func (m *Model) initLayer() {
-	start := m.newStart(data.NewData(m.InputSize...))
-	end := m.newEnd(data.NewData(m.lastLayer().GetOutputSize()...))
+	start := m.newStart(data.NewData(m.InputSize))
+	end := m.newEnd(data.NewData(m.lastLayer().GetOutputSize()))
 	for i, l := range m.Layers {
 		if i == 0 {
 			l.SetPrev(start)

@@ -20,18 +20,18 @@ func NewData2(x, y int) Data {
 	return result
 }
 
-func (d Data2) SetValue(value float64, indexes ...int) Data {
+func (d Data2) SetValue(value float64, indexes []int) Data {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	d.Value[indexes[0]][indexes[1]] = value
 	return d
 }
 
-func (d Data2) GetValue(indexes ...int) float64 {
+func (d Data2) GetValue(indexes []int) float64 {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	return d.Value[indexes[0]][indexes[1]]
 }
 
-func (d Data2) GetData(indexes ...int) Data {
+func (d Data2) GetData(indexes []int) Data {
 	switch len(indexes) {
 	case 0:
 		return d
@@ -40,7 +40,7 @@ func (d Data2) GetData(indexes ...int) Data {
 		copy(result.Value, d.Value[indexes[0]])
 		return result
 	case 2:
-		return NewData().SetValue(d.GetValue(indexes...))
+		return NewData0().SetValue(d.GetValue(indexes), nil)
 	default:
 		panic("Can't get more than 2 dim data from Data2")
 	}

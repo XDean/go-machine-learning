@@ -13,23 +13,23 @@ func NewData1(len int) Data {
 	return Data1{Len: len, Value: make([]float64, len)}
 }
 
-func (d Data1) SetValue(value float64, indexes ...int) Data {
+func (d Data1) SetValue(value float64, indexes []int) Data {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	d.Value[indexes[0]] = value
 	return d
 }
 
-func (d Data1) GetValue(indexes ...int) float64 {
+func (d Data1) GetValue(indexes []int) float64 {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	return d.Value[indexes[0]]
 }
 
-func (d Data1) GetData(indexes ...int) Data {
+func (d Data1) GetData(indexes []int) Data {
 	switch len(indexes) {
 	case 0:
 		return d
 	case 1:
-		return NewData().SetValue(d.Value[indexes[0]])
+		return NewData0().SetValue(d.Value[indexes[0]], nil)
 	default:
 		panic("Can't get more than 1 dim data from Data2")
 	}

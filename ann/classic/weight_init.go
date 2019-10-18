@@ -26,7 +26,7 @@ func (r *RandomInit) Init(data data.Data) data.Data {
 			v = (v - 0.5) * 2
 		}
 		v *= r.Range
-		data.SetValue(v, index...)
+		data.SetValue(v, index)
 	})
 	return data
 }

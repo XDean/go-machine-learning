@@ -42,7 +42,7 @@ func (s *StartLayer) GetOutput() data.Data {
 }
 
 func (s *StartLayer) GetErrorToInput() data.Data {
-	return data.NewData()
+	return data.NewData0()
 }
 
 func (s *StartLayer) GetOutputSize() []int {
