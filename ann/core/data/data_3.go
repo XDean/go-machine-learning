@@ -34,24 +34,7 @@ func (d Data3) GetValue(indexes []int) float64 {
 }
 
 func (d Data3) GetData(indexes []int) Data {
-	switch len(indexes) {
-	case 0:
-		return d
-	case 1:
-		result := NewData2(d.Y, d.Z).(Data2)
-		copy(result.Value, d.Value[indexes[0]])
-		return result
-	case 2:
-		result := NewData1(d.Z).(Data1)
-		copy(result.Value, d.Value[indexes[0]][indexes[1]])
-		return result
-	case 3:
-		result := NewData0()
-		result.SetValue(d.GetValue(indexes), nil)
-		return result
-	default:
-		panic("Can't get more than 3 dim data from Data3")
-	}
+	return NewSub(d, indexes)
 }
 
 func (d Data3) GetSize() []int {

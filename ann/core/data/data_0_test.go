@@ -15,6 +15,8 @@ func testData0(t *testing.T, df func() Data) {
 	d.SetValue(1, nil)
 	assert.Equal(t, 1.0, d.GetValue(nil))
 	assert.Equal(t, d, d.GetData(nil))
+	d.GetData(nil).SetValue(2.0, nil)
+	assert.Equal(t, 2.0, d.GetValue(nil))
 
 	assert.Equal(t, []int{}, d.GetSize())
 	assert.Equal(t, 1, d.GetCount())
@@ -34,14 +36,20 @@ func testData0(t *testing.T, df func() Data) {
 	assert.Equal(t, 1, hit)
 
 	hit = 0
+	d.Map(func(value float64) float64 {
+		return 5.0
+	})
 	d.MapIndex(func(index []int, value float64) float64 {
 		hit++
 		assert.Equal(t, []int{}, index)
-		assert.Equal(t, 100.0, value)
+		assert.Equal(t, 5.0, value)
 		return 1.0
 	})
 	assert.Equal(t, 1, hit)
 	d.ForEachIndex(func(index []int, value float64) {
+		assert.Equal(t, 1.0, value)
+	})
+	d.ForEach(func(value float64) {
 		assert.Equal(t, 1.0, value)
 	})
 }

@@ -31,20 +31,7 @@ func (d Data2) GetValue(indexes []int) float64 {
 }
 
 func (d Data2) GetData(indexes []int) Data {
-	switch len(indexes) {
-	case 0:
-		return d
-	case 1:
-		result := NewData1(d.Size[1]).(Data1)
-		copy(result.Value, d.Value[indexes[0]])
-		return result
-	case 2:
-		result := NewData0()
-		result.SetValue(d.GetValue(indexes), nil)
-		return result
-	default:
-		panic("Can't get more than 2 dim data from Data2")
-	}
+	return NewSub(d, indexes)
 }
 
 func (d Data2) GetSize() []int {
