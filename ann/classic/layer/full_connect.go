@@ -70,22 +70,25 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 }
 
 func (f *FullConnect) Init() {
-	f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, f.GetPrev().GetOutputSize()...)))
-
-	f.input = f.GetPrev().GetOutput()
+	inputSize := f.GetPrev().GetOutputSize()
+	if f.Weight == nil {
+		f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, inputSize...)))
+	}
 	f.output = data.NewData1(f.Size)
-	f.outputToInput = data.NewData(append([]int{f.Size}, f.input.GetSize()...))
-	f.outputToWeight = data.NewData(append([]int{f.Size}, f.input.GetSize()...))
+	f.outputToInput = data.NewData(append([]int{f.Size}, inputSize...))
+	f.outputToWeight = data.NewData(append([]int{f.Size}, inputSize...))
 }
 
 func (f *FullConnect) Forward() {
+	f.input = f.GetPrev().GetOutput()
 	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
 		net := 0.0
 		f.Weight.GetData(outputIndex).ForEachIndex(func(inputIndex []int, w float64) {
-			net += w * f.input.GetValue(inputIndex)
+			input := f.input.GetValue(inputIndex)
+			net += w * input
 			index := append(outputIndex, inputIndex...)
 			f.outputToInput.SetValue(w, index)
-			f.outputToWeight.SetValue(f.input.GetValue(inputIndex), index)
+			f.outputToWeight.SetValue(input, index)
 		})
 		output, partial := f.Activation.Active(net)
 		f.outputToInput.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
