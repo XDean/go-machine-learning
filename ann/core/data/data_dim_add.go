@@ -9,9 +9,8 @@ func NewDimAdd(actual Data, addDim int) Data {
 	return DimAdd{Actual: actual, AddDim: addDim}
 }
 
-func (d DimAdd) SetValue(value float64, indexes []int) Data {
+func (d DimAdd) SetValue(value float64, indexes []int) {
 	d.Actual.SetValue(value, indexes[:d.Actual.GetDim()])
-	return d
 }
 
 func (d DimAdd) GetValue(indexes []int) float64 {
@@ -20,15 +19,9 @@ func (d DimAdd) GetValue(indexes []int) float64 {
 
 func (d DimAdd) GetData(indexes []int) Data {
 	if len(indexes) > d.Actual.GetDim() {
-		return NewDimAdd(
-			NewData0().SetValue(d.GetValue(indexes), nil),
-			d.AddDim-len(indexes)+d.Actual.GetDim(),
-		)
+		return NewSub(d, indexes)
 	} else {
-		return NewDimAdd(
-			d.GetData(indexes),
-			d.AddDim,
-		)
+		return NewDimAdd(d.Actual.GetData(indexes), d.AddDim)
 	}
 }
 
@@ -49,9 +42,8 @@ func (d DimAdd) GetDim() int {
 	return d.Actual.GetDim() + d.AddDim
 }
 
-func (d DimAdd) Fill(value float64) Data {
+func (d DimAdd) Fill(value float64) {
 	d.Map(func(_ float64) float64 { return value })
-	return d
 }
 
 func (d DimAdd) ToArray() []float64 {

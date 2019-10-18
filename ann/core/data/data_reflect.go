@@ -32,21 +32,19 @@ func NewDataReflect(ls []int) DataReflect {
 	return result
 }
 
-func (d DataReflect) Fill(value float64) Data {
+func (d DataReflect) Fill(value float64) {
 	d.ForEachIndex(func(index []int, _ float64) {
 		d.SetValue(value, index)
 	})
-	return d
 }
 
-func (d DataReflect) SetValue(value float64, indexes []int) Data {
+func (d DataReflect) SetValue(value float64, indexes []int) {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	if d.isValue() {
 		*d.Value = value
 	} else {
 		d.findByIndex(indexes).SetFloat(value)
 	}
-	return d
 }
 
 func (d DataReflect) GetValue(indexes []int) float64 {

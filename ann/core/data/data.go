@@ -5,7 +5,7 @@ import (
 )
 
 type Data interface {
-	SetValue(value float64, indexes []int) Data // return self
+	SetValue(value float64, indexes []int)
 	GetValue(indexes []int) float64
 	GetData(indexes []int) Data
 
@@ -13,7 +13,7 @@ type Data interface {
 	GetCount() int
 	GetDim() int
 
-	Fill(value float64) Data // return self
+	Fill(value float64)
 	ToArray() []float64
 
 	ForEachIndex(f func(indexes []int, value float64))

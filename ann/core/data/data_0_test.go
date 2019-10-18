@@ -12,16 +12,16 @@ func TestData0(t *testing.T) {
 
 func testData0(t *testing.T, df func() Data) {
 	d := df()
-	d.SetValue(1)
-	assert.Equal(t, 1.0, d.GetValue())
-	assert.Equal(t, d, d.GetData())
+	d.SetValue(1, nil)
+	assert.Equal(t, 1.0, d.GetValue(nil))
+	assert.Equal(t, d, d.GetData(nil))
 
 	assert.Equal(t, []int{}, d.GetSize())
 	assert.Equal(t, 1, d.GetCount())
 	assert.Equal(t, 0, d.GetDim())
 
 	d.Fill(100)
-	assert.Equal(t, 100.0, d.GetValue())
+	assert.Equal(t, 100.0, d.GetValue(nil))
 
 	assert.Equal(t, []float64{100}, d.ToArray())
 
@@ -49,12 +49,12 @@ func testData0(t *testing.T, df func() Data) {
 func testData0_Panic(t *testing.T, df func() Data) {
 	d := df()
 	assert.Panics(t, func() {
-		d.SetValue(1, 1)
+		d.SetValue(1, []int{1})
 	})
 	assert.Panics(t, func() {
-		d.GetValue(1)
+		d.GetValue([]int{1})
 	})
 	assert.Panics(t, func() {
-		d.GetData(1)
+		d.GetData([]int{1})
 	})
 }

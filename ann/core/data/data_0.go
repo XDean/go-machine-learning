@@ -13,10 +13,9 @@ func NewData0() Data {
 	return Data0{Value: &value}
 }
 
-func (d Data0) SetValue(value float64, indexes []int) Data {
+func (d Data0) SetValue(value float64, indexes []int) {
 	util.MustTrue(len(indexes) == 0)
 	*d.Value = value
-	return d
 }
 
 func (d Data0) GetValue(indexes []int) float64 {
@@ -41,9 +40,8 @@ func (d Data0) GetDim() int {
 	return 0
 }
 
-func (d Data0) Fill(value float64) Data {
+func (d Data0) Fill(value float64) {
 	*d.Value = value
-	return d
 }
 
 func (d Data0) ToArray() []float64 {

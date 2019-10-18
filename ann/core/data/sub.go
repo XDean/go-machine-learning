@@ -10,12 +10,14 @@ type Sub struct {
 
 func NewSub(actual Data, sub []int) Data {
 	util.NoError(checkIndex(actual.GetSize(), sub, false))
+	if len(sub) == 0 {
+		return actual
+	}
 	return Sub{Actual: actual, Sub: sub, Size: actual.GetSize()[len(sub):]}
 }
 
-func (d Sub) SetValue(value float64, indexes []int) Data {
+func (d Sub) SetValue(value float64, indexes []int) {
 	d.Actual.SetValue(value, append(d.Sub, indexes...))
-	return d
 }
 
 func (d Sub) GetValue(indexes []int) float64 {
@@ -46,9 +48,8 @@ func (d Sub) GetDim() int {
 	return d.Actual.GetDim() - len(d.Sub)
 }
 
-func (d Sub) Fill(value float64) Data {
+func (d Sub) Fill(value float64) {
 	d.Map(func(_ float64) float64 { return value })
-	return d
 }
 
 func (d Sub) ToArray() []float64 {

@@ -16,7 +16,7 @@ func (s SquareError) CalcError(target, actual data.Data) (error float64, partial
 	target.ForEachIndex(func(index []int, t float64) {
 		a := actual.GetValue(index)
 		error += (t - a) * (t - a) / 2
-		partial = partial.SetValue(a-t, index)
+		partial.SetValue(a-t, index)
 	})
 	return
 }

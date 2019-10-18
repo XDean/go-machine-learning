@@ -25,14 +25,13 @@ func NewDataRecusive(ls []int) Data {
 	return d
 }
 
-func (d DataRecursive) Fill(value float64) Data {
+func (d DataRecursive) Fill(value float64) {
 	d.ForEachIndex(func(index []int, _ float64) {
 		d.SetValue(value, index)
 	})
-	return d
 }
 
-func (d DataRecursive) SetValue(value float64, indexes []int) Data {
+func (d DataRecursive) SetValue(value float64, indexes []int) {
 	if len(indexes) == 0 {
 		if d.isValue() {
 			*d.Value = value
@@ -41,12 +40,11 @@ func (d DataRecursive) SetValue(value float64, indexes []int) Data {
 		}
 	} else {
 		if indexes[0] < d.Len {
-			d.Children[indexes[0]] = d.Children[indexes[0]].SetValue(value, indexes[1:])
+			d.Children[indexes[0]].SetValue(value, indexes[1:])
 		} else {
 			panic(fmt.Sprintf("SetValue: Index out of bound, len %d, get %d", d.Len, indexes[0]))
 		}
 	}
-	return d
 }
 
 func (d DataRecursive) GetValue(indexes []int) float64 {

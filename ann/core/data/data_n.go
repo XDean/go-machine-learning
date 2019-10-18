@@ -23,11 +23,10 @@ func NewDataN(size []int) Data {
 	}
 }
 
-func (d DataN) SetValue(value float64, indexes []int) Data {
+func (d DataN) SetValue(value float64, indexes []int) {
 	util.NoError(checkIndex(d.Size, indexes, true))
 	index := indexesToIndex(d.Size, indexes)
 	d.Value[index] = value
-	return d
 }
 
 func (d DataN) GetValue(indexes []int) float64 {
@@ -52,11 +51,10 @@ func (d DataN) GetDim() int {
 	return len(d.Size)
 }
 
-func (d DataN) Fill(value float64) Data {
+func (d DataN) Fill(value float64) {
 	for i := range d.Value {
 		d.Value[i] = value
 	}
-	return d
 }
 
 func (d DataN) ToArray() []float64 {

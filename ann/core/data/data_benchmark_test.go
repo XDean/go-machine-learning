@@ -10,7 +10,7 @@ func BenchmarkData2_New(b *testing.B) {
 
 func BenchmarkDataN_New(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		NewDataN(1000, 1000)
+		NewDataN([]int{1000, 1000})
 	}
 }
 
@@ -22,7 +22,7 @@ func BenchmarkData2_Fill(b *testing.B) {
 }
 
 func BenchmarkDataN_Fill(b *testing.B) {
-	d := NewDataN(1000, 1000)
+	d := NewDataN([]int{1000, 1000})
 	for i := 0; i < b.N; i++ {
 		d.Fill(float64(i))
 	}
@@ -49,7 +49,7 @@ func BenchmarkData2_ForEach(b *testing.B) {
 }
 
 func BenchmarkDataN_ForEach(b *testing.B) {
-	d := NewDataN(1000, 1000)
+	d := NewDataN([]int{1000, 1000})
 	for i := 0; i < b.N; i++ {
 		d.ForEachIndex(func(index []int, value float64) {
 			_ = len(index)
@@ -78,7 +78,7 @@ func BenchmarkData2_Map(b *testing.B) {
 }
 
 func BenchmarkDataN_Map(b *testing.B) {
-	d := NewDataN(1000, 1000)
+	d := NewDataN([]int{1000, 1000})
 	for n := 0; n < b.N; n++ {
 		d.MapIndex(func(index []int, value float64) float64 {
 			return float64(index[0] + index[1] + n)
