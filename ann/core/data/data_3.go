@@ -5,14 +5,14 @@ import (
 )
 
 type Data3 struct {
-	X, Y, Z int
-	Value   [][][]float64
+	Size  []int
+	Value [][][]float64
 }
 
 func NewData3(x, y, z int) Data {
 	result := Data3{
-		X: x, Y: y, Z: z,
 		Value: make([][][]float64, x),
+		Size:  []int{x, y, z},
 	}
 	for i := 0; i < x; i++ {
 		result.Value[i] = make([][]float64, y)
@@ -34,15 +34,26 @@ func (d Data3) GetValue(indexes []int) float64 {
 }
 
 func (d Data3) GetData(indexes []int) Data {
-	return NewSub(d, indexes)
+	switch len(indexes) {
+	case 0:
+		return d
+	case 1:
+		return refData2(d.Size[1], d.Size[2], d.Value[indexes[0]])
+	case 2:
+		return refData1(d.Size[2], d.Value[indexes[0]][indexes[1]])
+	case 3:
+		return refData0(&d.Value[indexes[0]][indexes[1]][indexes[2]])
+	default:
+		panic("Can't get more than 3 dim data from Data3")
+	}
 }
 
 func (d Data3) GetSize() []int {
-	return []int{d.X, d.Y, d.Z}
+	return d.Size
 }
 
 func (d Data3) GetCount() int {
-	return d.X * d.Y * d.Z
+	return d.Size[0] * d.Size[1] * d.Size[2]
 }
 
 func (d Data3) GetDim() int {

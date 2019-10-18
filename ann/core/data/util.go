@@ -4,7 +4,7 @@ import "fmt"
 
 func checkIndex(size []int, indexes []int, match bool) error {
 	if match && len(indexes) != len(size) {
-		return fmt.Errorf("Index not match, actual %d, get %d", len(size), len(indexes))
+		return fmt.Errorf("Index not match, actual %v, get %v", size, indexes)
 	}
 	for i, v := range indexes {
 		if v < 0 || v >= size[i] {

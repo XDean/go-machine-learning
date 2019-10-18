@@ -13,6 +13,10 @@ func NewData1(len int) Data {
 	return Data1{Len: len, Value: make([]float64, len)}
 }
 
+func refData1(len int, value []float64) Data {
+	return Data1{Len: len, Value: value}
+}
+
 func (d Data1) SetValue(value float64, indexes []int) {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	d.Value[indexes[0]] = value
@@ -24,7 +28,14 @@ func (d Data1) GetValue(indexes []int) float64 {
 }
 
 func (d Data1) GetData(indexes []int) Data {
-	return NewSub(d, indexes)
+	switch len(indexes) {
+	case 0:
+		return d
+	case 1:
+		return refData0(&d.Value[indexes[0]])
+	default:
+		panic("Can't get more than 1 dim data from Data2")
+	}
 }
 
 func (d Data1) GetSize() []int {

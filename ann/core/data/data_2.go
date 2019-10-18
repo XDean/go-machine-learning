@@ -20,6 +20,13 @@ func NewData2(x, y int) Data {
 	return result
 }
 
+func refData2(x, y int, value [][]float64) Data {
+	return Data2{
+		Size:  []int{x, y},
+		Value: value,
+	}
+}
+
 func (d Data2) SetValue(value float64, indexes []int) {
 	util.NoError(checkIndex(d.GetSize(), indexes, true))
 	d.Value[indexes[0]][indexes[1]] = value
@@ -31,7 +38,16 @@ func (d Data2) GetValue(indexes []int) float64 {
 }
 
 func (d Data2) GetData(indexes []int) Data {
-	return NewSub(d, indexes)
+	switch len(indexes) {
+	case 0:
+		return d
+	case 1:
+		return refData1(d.Size[1], d.Value[indexes[0]])
+	case 2:
+		return refData0(&d.Value[indexes[0]][indexes[1]])
+	default:
+		panic("Can't get more than 2 dim data from Data2")
+	}
 }
 
 func (d Data2) GetSize() []int {

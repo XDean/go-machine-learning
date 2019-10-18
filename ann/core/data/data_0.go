@@ -13,6 +13,10 @@ func NewData0() Data {
 	return Data0{Value: &value}
 }
 
+func refData0(ref *float64) Data {
+	return Data0{Value: ref}
+}
+
 func (d Data0) SetValue(value float64, indexes []int) {
 	util.MustTrue(len(indexes) == 0)
 	*d.Value = value

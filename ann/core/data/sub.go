@@ -1,6 +1,8 @@
 package data
 
-import "github.com/XDean/go-machine-learning/ann/core/util"
+import (
+	"github.com/XDean/go-machine-learning/ann/core/util"
+)
 
 type Sub struct {
 	Actual Data
@@ -76,12 +78,12 @@ func (d Sub) Map(f func(value float64) float64) {
 
 func (d Sub) ForEachIndex(f func(indexes []int, value float64)) {
 	forIndex(d.Size, func(index int, indexes []int) {
-		f(append(d.Sub, indexes...), d.GetValue(indexes))
+		f(indexes, d.GetValue(indexes))
 	})
 }
 
 func (d Sub) MapIndex(f func(index []int, value float64) float64) {
 	forIndex(d.Size, func(index int, indexes []int) {
-		d.SetValue(f(append(d.Sub, indexes...), d.GetValue(indexes)), indexes)
+		d.SetValue(f(indexes, d.GetValue(indexes)), indexes)
 	})
 }
