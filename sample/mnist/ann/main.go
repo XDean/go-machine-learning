@@ -59,7 +59,7 @@ func main() {
 				},
 				cli.IntFlag{
 					Name:        "repeat",
-					Usage:       "Repeat each train data `n` times",
+					Usage:       "Repeat each train data `n` times. If not positive, train until correct.",
 					Destination: &ctx.repeat,
 					Value:       1,
 				},

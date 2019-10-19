@@ -41,8 +41,26 @@ func (c Context) Train() (err error) {
 			break
 		}
 		input, target := mnistToData(data)
-		result := m.FeedTimes(input, target, c.repeat)[0]
-		predict := predictFromResult(result)
+		var result model.Result
+		var predict int
+		var usedTime int64
+		if c.repeat > 0 {
+			results := m.FeedTimes(input, target, c.repeat)
+			result = results[0]
+			predict = predictFromResult(result)
+			for _, v := range results {
+				usedTime += int64(v.Time / time.Millisecond)
+			}
+		} else {
+			for {
+				result = m.Feed(input, target)
+				predict = predictFromResult(result)
+				usedTime += int64(result.Time / time.Millisecond)
+				if uint8(predict) == data.Label {
+					break
+				}
+			}
+		}
 		profile.Add(data.Label == uint8(predict))
 		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
 			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, result.Time/time.Millisecond)
