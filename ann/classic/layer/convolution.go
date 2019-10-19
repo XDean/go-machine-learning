@@ -1,7 +1,6 @@
 package layer
 
 import (
-	"fmt"
 	. "github.com/XDean/go-machine-learning/ann/classic"
 	"github.com/XDean/go-machine-learning/ann/core/data"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
@@ -97,18 +96,18 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 }
 
 func (f *Convolution) Init() {
-	util.MustTrue(f.KernelSize%2 == 1, "Kernel size must be odd")
 	inputSize := f.GetPrev().GetOutputSize()
 	util.MustTrue(len(inputSize) == 3)
-	f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
-	f.OutputSize = [3]int{
-		(f.InputSize[0]+2*f.Padding-f.KernelSize)/f.Stride + 1,
-		(f.InputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
-		f.KernelCount,
+	if f.Weight == nil {
+		f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
+		f.OutputSize = [3]int{
+			(f.InputSize[0]+2*f.Padding-f.KernelSize)/f.Stride + 1,
+			(f.InputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
+			f.KernelCount,
+		}
+		f.Weight = f.WeightInit.Init(data.NewData([]int{f.KernelCount, f.KernelSize, f.KernelSize, f.InputSize[2]}))
+		f.Bias = make([]float64, f.KernelCount)
 	}
-
-	f.Weight = f.WeightInit.Init(data.NewData([]int{f.KernelCount, f.KernelSize, f.KernelSize, f.InputSize[2]}))
-	f.Bias = make([]float64, f.KernelCount)
 }
 
 func (f *Convolution) Forward() {
@@ -120,7 +119,6 @@ func (f *Convolution) Forward() {
 	f.outputToInput = data.NewData(append(f.OutputSize[:], f.InputSize[:]...))
 
 	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
-		fmt.Println(outputIndex)
 		kernel := outputIndex[2]
 		net := 0.0
 		for i := 0; i < f.KernelSize; i++ {
@@ -143,8 +141,8 @@ func (f *Convolution) Forward() {
 			}
 		}
 		output, partial := f.Activation.Active(net)
-		f.outputToInput.Map(func(value float64) float64 { return value * partial })
-		f.outputToWeight.Map(func(value float64) float64 { return value * partial })
+		f.outputToInput.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
+		f.outputToWeight.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
 		return output
 	})
 }

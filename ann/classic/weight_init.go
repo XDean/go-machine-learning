@@ -12,6 +12,7 @@ type WeightInit interface {
 
 func init() {
 	persistent.Register(&RandomInit{})
+	persistent.Register(&NormalInit{})
 }
 
 type RandomInit struct {
