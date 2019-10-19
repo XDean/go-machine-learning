@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/XDean/go-machine-learning/ann/core/data"
 	"time"
 )
 
@@ -9,14 +8,14 @@ type EndLayer struct {
 	BaseLayer
 
 	ErrorFunc ErrorFunc
-	Target    data.Data
+	Target    Data
 
-	Input        data.Data
-	TotalError   float64   // E
-	ErrorToInput data.Data // ∂E/∂a
+	Input        Data
+	TotalError   float64 // E
+	ErrorToInput Data    // ∂E/∂a
 }
 
-func NewEndLayer(errorFunc ErrorFunc, target data.Data) *EndLayer {
+func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
@@ -41,24 +40,20 @@ func (e *EndLayer) Learn() {
 	// do nothing
 }
 
-func (e *EndLayer) GetInput() data.Data {
+func (e *EndLayer) GetInput() Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetOutput() data.Data {
+func (e *EndLayer) GetOutput() Data {
 	return e.Input
 }
 
-func (e *EndLayer) GetErrorToInput() data.Data {
+func (e *EndLayer) GetErrorToInput() Data {
 	return e.ErrorToInput
 }
 
-func (e *EndLayer) SetInputSize() []int {
-	return e.Input.GetSize()
-}
-
-func (e *EndLayer) GetOutputSize() []int {
-	return e.Input.GetSize()
+func (e *EndLayer) GetOutputSize() Size {
+	return e.Input.Size
 }
 
 func (e *EndLayer) ToResult(start time.Time) Result {

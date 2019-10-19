@@ -2,7 +2,6 @@ package layer
 
 import (
 	. "github.com/XDean/go-machine-learning/ann/classic"
-	"github.com/XDean/go-machine-learning/ann/core/data"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/XDean/go-machine-learning/ann/core/persistent"
 )
@@ -15,20 +14,19 @@ type (
 	FullConnect struct {
 		BaseLayer
 
-		Weight data.Data // a * i
-		Bias   float64   // TODO, not used now
-
 		Size          int
 		Activation    Activation
 		LearningRatio float64
 		WeightInit    WeightInit
 
-		input          data.Data // i
-		output         data.Data // a
-		errorToOutput  data.Data // a, ∂E / ∂a
-		errorToInput   data.Data // i, ∂E / ∂a
-		outputToInput  data.Data // a * i, ∂a / ∂i
-		outputToWeight data.Data // a * i, ∂a / ∂w
+		InputSize Size
+		Weight    []Data  //  a * i
+		Bias      float64 // TODO, not used now
+
+		output         Data   // a
+		errorToOutput  Data   // a, ∂E / ∂a
+		outputToInput  []Data // a * i, ∂a / ∂i
+		outputToWeight []Data // a * i, ∂a / ∂w
 	}
 
 	FullConnectConfig struct {
@@ -71,55 +69,88 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 
 func (f *FullConnect) Init() {
 	inputSize := f.GetPrev().GetOutputSize()
-	if f.Weight == nil {
-		f.Weight = f.WeightInit.Init(data.NewData(append([]int{f.Size}, inputSize...)))
+	if !f.BaseLayer.Init {
+		f.BaseLayer.Init = true
+		f.InputSize = inputSize
+		f.Weight = f.newOutputToInputArray(inputSize)
+		f.Bias = 0
 	}
-	f.output = data.NewData1(f.Size)
-	f.outputToInput = data.NewData(append([]int{f.Size}, inputSize...))
-	f.outputToWeight = data.NewData(append([]int{f.Size}, inputSize...))
+	f.output = NewData([3]int{1, 1, f.Size})
+	f.outputToInput = f.newOutputToInputArray(inputSize)
+	f.outputToWeight = f.newOutputToInputArray(inputSize)
+}
+
+func (f *FullConnect) newOutputToInputArray(inputSize Size) []Data {
+	result := make([]Data, f.Size)
+	for i := range result {
+		result[i] = f.WeightInit.Init(NewData(inputSize))
+	}
+	return result
 }
 
 func (f *FullConnect) Forward() {
-	f.input = f.GetPrev().GetOutput()
-	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
+	input := f.GetPrev().GetOutput()
+	for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
 		net := 0.0
-		f.Weight.GetData(outputIndex).ForEachIndex(func(inputIndex []int, w float64) {
-			input := f.input.GetValue(inputIndex)
-			net += w * input
-			index := append(outputIndex, inputIndex...)
-			f.outputToInput.SetValue(w, index)
-			f.outputToWeight.SetValue(input, index)
-		})
+		for i := range input.Value {
+			for j := range input.Value[i] {
+				for k, inputValue := range input.Value[i][j] {
+					weight := f.Weight[outputIndex].Value[i][j][k]
+					net += weight * inputValue
+				}
+			}
+		}
 		output, partial := f.Activation.Active(net)
-		f.outputToInput.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
-		f.outputToWeight.GetData(outputIndex).Map(func(value float64) float64 { return value * partial })
-		return output
-	})
+		for i := range input.Value {
+			for j := range input.Value[i] {
+				for k, inputValue := range input.Value[i][j] {
+					weight := f.Weight[outputIndex].Value[i][j][k]
+					f.outputToInput[outputIndex].Value[i][j][k] = weight * partial
+					f.outputToWeight[outputIndex].Value[i][j][k] = inputValue * partial
+				}
+			}
+		}
+		f.output.Value[0][0][outputIndex] = output
+	}
 }
 
 func (f *FullConnect) Backward() {
 	f.errorToOutput = f.GetNext().GetErrorToInput()
-	f.errorToInput = ErrorToInput(f.errorToOutput, f.outputToInput)
 }
 
 func (f *FullConnect) Learn() {
-	f.Weight.MapIndex(func(index []int, value float64) float64 {
-		return value - f.LearningRatio*f.errorToOutput.GetValue([]int{index[0]})*f.outputToWeight.GetValue(index)
-	})
+	for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
+		for i := range f.Weight[outputIndex].Value {
+			for j := range f.Weight[outputIndex].Value[i] {
+				for k, w := range f.Weight[outputIndex].Value[i][j] {
+					f.Weight[outputIndex].Value[i][j][k] = w -
+						f.LearningRatio*f.errorToOutput.Value[0][0][outputIndex]*f.outputToWeight[outputIndex].Value[i][j][k]
+				}
+			}
+		}
+	}
 }
 
-func (f *FullConnect) GetInput() data.Data {
-	return f.input
-}
-
-func (f *FullConnect) GetOutput() data.Data {
+func (f *FullConnect) GetOutput() Data {
 	return f.output
 }
 
-func (f *FullConnect) GetErrorToInput() data.Data {
-	return f.errorToInput
+func (f *FullConnect) GetErrorToInput() Data {
+	result := NewData(f.InputSize)
+	for i := range result.Value {
+		for j := range result.Value[i] {
+			for k := range result.Value[i][j] {
+				sum := 0.0
+				for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
+					sum += f.errorToOutput.Value[0][0][outputIndex] * f.outputToInput[outputIndex].Value[i][j][k]
+				}
+				result.Value[i][j][k] = sum
+			}
+		}
+	}
+	return result
 }
 
-func (f *FullConnect) GetOutputSize() []int {
-	return []int{f.Size}
+func (f *FullConnect) GetOutputSize() Size {
+	return f.output.Size
 }

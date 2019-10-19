@@ -1,20 +1,12 @@
 package model
 
-import (
-	"github.com/XDean/go-machine-learning/ann/core/data"
-)
-
 type StartLayer struct {
 	BaseLayer
-	Input data.Data
+	Input Data
 }
 
-func NewStartLayer(input data.Data) *StartLayer {
+func NewStartLayer(input Data) *StartLayer {
 	return &StartLayer{Input: input}
-}
-
-func (s *StartLayer) Name() string {
-	return "Start Layer"
 }
 
 func (s *StartLayer) Init() {
@@ -33,20 +25,16 @@ func (s *StartLayer) Learn() {
 	// do nothing
 }
 
-func (s *StartLayer) GetInput() data.Data {
+func (s *StartLayer) GetOutput() Data {
 	return s.Input
 }
 
-func (s *StartLayer) GetOutput() data.Data {
-	return s.Input
+func (s *StartLayer) GetErrorToInput() Data {
+	return EMPTY_DATA
 }
 
-func (s *StartLayer) GetErrorToInput() data.Data {
-	return data.NewData0()
-}
-
-func (s *StartLayer) GetOutputSize() []int {
-	return s.Input.GetSize()
+func (s *StartLayer) GetOutputSize() Size {
+	return s.Input.Size
 }
 
 func (s *StartLayer) SetPrev(l Layer) {

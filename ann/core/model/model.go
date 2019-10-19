@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/gob"
-	"github.com/XDean/go-machine-learning/ann/core/data"
 	"github.com/XDean/go-machine-learning/ann/core/util"
 	"io"
 	"os"
@@ -15,12 +14,12 @@ type (
 		Name      string
 		Layers    []Layer
 		ErrorFunc ErrorFunc
-		InputSize []int
+		InputSize [3]int
 	}
 
 	Result struct {
-		Output     data.Data
-		Target     data.Data
+		Output     Data
+		Target     Data
 		TotalError float64
 		Time       time.Duration
 	}
@@ -30,7 +29,7 @@ func (m *Model) Init() {
 	m.initLayer()
 }
 
-func (m *Model) FeedTimes(input, target data.Data, times int) []Result {
+func (m *Model) FeedTimes(input, target Data, times int) []Result {
 	result := make([]Result, times)
 	for i := range result {
 		result[i] = m.Feed(input, target)
@@ -38,7 +37,7 @@ func (m *Model) FeedTimes(input, target data.Data, times int) []Result {
 	return result
 }
 
-func (m *Model) Feed(input, target data.Data) Result {
+func (m *Model) Feed(input, target Data) Result {
 	startTime := time.Now()
 
 	start := m.newStart(input)
@@ -59,7 +58,7 @@ func (m *Model) Feed(input, target data.Data) Result {
 	return end.ToResult(startTime)
 }
 
-func (m *Model) Test(input, target data.Data) Result {
+func (m *Model) Test(input, target Data) Result {
 	startTime := time.Now()
 
 	start := m.newStart(input)
@@ -72,7 +71,7 @@ func (m *Model) Test(input, target data.Data) Result {
 	return end.ToResult(startTime)
 }
 
-func (m *Model) Predict(input data.Data) data.Data {
+func (m *Model) Predict(input Data) Data {
 	start := m.newStart(input)
 	start.Forward()
 	m.forward()
@@ -116,14 +115,14 @@ func (m *Model) lastLayer() Layer {
 	return m.Layers[len(m.Layers)-1]
 }
 
-func (m *Model) newStart(input data.Data) *StartLayer {
+func (m *Model) newStart(input Data) *StartLayer {
 	start := NewStartLayer(input)
 	m.Layers[0].SetPrev(start)
 	start.SetNext(m.Layers[0])
 	return start
 }
 
-func (m *Model) newEnd(target data.Data) *EndLayer {
+func (m *Model) newEnd(target Data) *EndLayer {
 	end := NewEndLayer(m.ErrorFunc, target)
 	end.SetPrev(m.lastLayer())
 	m.lastLayer().SetNext(end)
@@ -162,8 +161,8 @@ func (m *Model) learn() {
 }
 
 func (m *Model) initLayer() {
-	start := m.newStart(data.NewData(m.InputSize))
-	end := m.newEnd(data.NewData(m.lastLayer().GetOutputSize()))
+	start := m.newStart(NewData(m.InputSize))
+	end := m.newEnd(NewData(m.lastLayer().GetOutputSize()))
 	for i, l := range m.Layers {
 		if i == 0 {
 			l.SetPrev(start)

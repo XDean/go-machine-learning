@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	train_image = "t10k-images.idx3-ubyte"
-	train_label = "t10k-labels.idx1-ubyte"
-	test_image  = "train-images.idx3-ubyte"
-	test_label  = "train-labels.idx1-ubyte"
+	test_image  = "t10k-images.idx3-ubyte"
+	test_label  = "t10k-labels.idx1-ubyte"
+	train_image = "train-images.idx3-ubyte"
+	train_label = "train-labels.idx1-ubyte"
 )
 
 func main() {
