@@ -183,6 +183,6 @@ func (f *Pooling) GetErrorToInput() Data {
 	return result
 }
 
-func (f *Pooling) GetOutputSize() []int {
-	return f.OutputSize[:]
+func (f *Pooling) GetOutputSize() Size {
+	return f.OutputSize
 }

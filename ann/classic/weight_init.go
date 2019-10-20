@@ -21,7 +21,7 @@ type RandomInit struct {
 }
 
 func (r *RandomInit) Init(data Data) Data {
-	data.MapIndex(func(index []int, value float64) float64 {
+	data.Map(func(value float64) float64 {
 		v := rand.Float64()
 		if !r.PositiveOnly {
 			v = (v - 0.5) * 2
@@ -38,7 +38,7 @@ type NormalInit struct {
 }
 
 func (r *NormalInit) Init(data Data) Data {
-	data.MapIndex(func(index []int, _ float64) float64 {
+	data.Map(func(_ float64) float64 {
 		v := rand.NormFloat64()
 		return (v * r.Std) + r.Mean
 	})

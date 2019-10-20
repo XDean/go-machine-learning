@@ -18,22 +18,23 @@ func init() {
 		},
 	})
 
-	//RegisterModel(&model.Model{
-	//	Name:      "Classic CNN",
-	//	ErrorFunc: classic.SquareError{},
-	//	InputSize: []int{28, 28},
-	//	Layers: []model.Layer{
-	//		layer.NewDimAdd(1),
-	//		layer.NewConvolution(layer.ConvolutionConfig{
-	//			KernelCount: 10,
-	//			KernelSize:  3,
-	//			Padding:     1,
-	//		}), // 28 * 28 * 10
-	//		layer.NewPooling(layer.PoolingConfig{
-	//			Type: layer.POOL_MAX,
-	//			Size: 2,
-	//		}), // 27 * 27 * 10
-	//		layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
-	//	},
-	//})
+	RegisterModel(&model.Model{
+		Name:      "Classic CNN",
+		ErrorFunc: classic.SquareError{},
+		InputSize: [3]int{1, 28, 28},
+		Layers: []model.Layer{
+			layer.NewConvolution(layer.ConvolutionConfig{
+				KernelCount: 25,
+				KernelSize:  3,
+				Padding:     1,
+			}), // 25 * 28 * 28
+			layer.NewPooling(layer.PoolingConfig{
+				Type:    layer.POOL_MAX,
+				Size:    2,
+				Stride:  2,
+				Padding: 0,
+			}), // 25 * 14 * 14
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+		},
+	})
 }

@@ -95,7 +95,7 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 
 func (f *Convolution) Init() {
 	inputSize := f.GetPrev().GetOutputSize()
-	weightSize := [3]int{f.KernelSize, f.KernelSize, inputSize[0]}
+	weightSize := [3]int{inputSize[0], f.KernelSize, f.KernelSize}
 	if !f.BaseLayer.Init {
 		f.BaseLayer.Init = true
 		f.InputSize = inputSize
@@ -143,17 +143,17 @@ func (f *Convolution) Forward() {
 				for z := 0; z < f.InputSize[0]; z++ {
 					inputX := x + i - f.Padding
 					inputY := y + j - f.Padding
-					weight := f.Weight[kernel].Value[i][j][z]
+					weight := f.Weight[kernel].Value[z][i][j]
 					isPadding := inputX < 0 || inputX >= f.InputSize[1] || inputY < 0 || inputY >= f.InputSize[2]
 					inputValue := 0.0
 					if !isPadding {
-						inputValue = f.input.Value[inputX][inputY][z]
+						inputValue = f.input.Value[z][inputX][inputY]
 					}
 					net += inputValue * weight
 					if !isPadding {
-						f.outputToInput[kernel][x][y].Value[i][j][z] = weight
+						f.outputToInput[kernel][x][y].Value[z][i][j] = weight
 					}
-					f.outputToWeight[kernel][x][y].Value[i][j][z] = inputValue
+					f.outputToWeight[kernel][x][y].Value[z][i][j] = inputValue
 				}
 			}
 		}
@@ -210,7 +210,7 @@ func (f *Convolution) GetErrorToInput() Data {
 					if isPadding {
 						continue
 					}
-					result.Value[z][inputX][inputY] += v * f.outputToInput[kernel][x][y].Value[i][j][z] * f.outputPartial.Value[kernel][x][y]
+					result.Value[z][inputX][inputY] += v * f.outputToInput[kernel][x][y].Value[z][i][j] * f.outputPartial.Value[kernel][x][y]
 				}
 			}
 		}
