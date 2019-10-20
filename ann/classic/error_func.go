@@ -14,10 +14,10 @@ type SquareError struct{}
 func (s SquareError) CalcError(target, actual Data) (error float64, partial Data) {
 	partial = NewData(actual.Size)
 
-	target.ForEachIndex(func(index []int, t float64) {
-		a := actual.GetValue(index)
+	target.ForEachIndex(func(i, j, k int, t float64) {
+		a := actual.Value[i][j][k]
 		error += (t - a) * (t - a) / 2
-		partial.SetValue(a-t, index)
+		partial.Value[i][j][k] = a - t
 	})
 	return
 }

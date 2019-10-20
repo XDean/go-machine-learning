@@ -49,7 +49,7 @@ func main() {
 				cli.IntFlag{
 					Name: "model",
 					Usage: "Use an new built-in model to train. Input the model number. " +
-						"You can use `show` command to see available model. Note it will be override by model from loadPath.",
+						"You can use 'show' command to see available model. Note it will be override by model from loadPath.",
 					Destination: &ctx.modelN,
 				},
 				cli.StringFlag{
