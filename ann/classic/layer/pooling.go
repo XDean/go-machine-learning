@@ -1,175 +1,188 @@
 package layer
 
-//
-//import (
-//	"github.com/XDean/go-machine-learning/ann/core/data"
-//	. "github.com/XDean/go-machine-learning/ann/core/model"
-//	"github.com/XDean/go-machine-learning/ann/core/persistent"
-//	"github.com/XDean/go-machine-learning/ann/core/util"
-//)
-//
-//func init() {
-//	persistent.Register(new(Pooling))
-//}
-//
-//type (
-//	PoolingType int
-//	Pooling     struct {
-//		BaseLayer
-//
-//		Type    PoolingType
-//		Size    int
-//		Padding int
-//		Stride  int
-//
-//		InputSize  [3]int
-//		OutputSize [3]int
-//
-//		input             data.Data
-//		output            data.Data
-//		errorToOutput     data.Data                     // output
-//		errorToInput      data.Data                     // input
-//		outputToInput     map[[3]int]float64            // output
-//		outputToEachInput map[[3]int]map[[3]int]float64 // output * input
-//	}
-//
-//	PoolingConfig struct {
-//		Type    PoolingType
-//		Size    int
-//		Padding int
-//		Stride  int
-//	}
-//)
-//
-//const (
-//	POOL_MAX PoolingType = iota + 1
-//	POOL_AVG
-//	POOL_SUM
-//)
-//
-//var (
-//	PoolingDefaultConfig = PoolingConfig{
-//		Type:    POOL_MAX,
-//		Size:    2,
-//		Padding: 0,
-//		Stride:  1,
-//	}
-//)
-//
-//func NewPooling(config PoolingConfig) *Pooling {
-//	if config.Type == 0 {
-//		config.Type = PoolingDefaultConfig.Type
-//	}
-//	if config.Size == 0 {
-//		config.Size = PoolingDefaultConfig.Size
-//	}
-//	if config.Stride == 0 {
-//		config.Stride = PoolingDefaultConfig.Stride
-//	}
-//	return &Pooling{
-//		Type:    config.Type,
-//		Size:    config.Size,
-//		Stride:  config.Stride,
-//		Padding: config.Padding,
-//	}
-//}
-//
-//func (f *Pooling) Init() {
-//	inputSize := f.GetPrev().GetOutputSize()
-//	util.MustTrue(len(inputSize) == 3)
-//	f.InputSize = [3]int{inputSize[0], inputSize[1], inputSize[2]}
-//	f.OutputSize = [3]int{
-//		(f.InputSize[0]+2*f.Padding-f.Size)/f.Stride + 1,
-//		(f.InputSize[1]+2*f.Padding-f.Size)/f.Stride + 1,
-//		f.InputSize[2],
-//	}
-//	f.output = data.NewData(f.OutputSize[:])
-//	f.errorToOutput = data.NewData(f.OutputSize[:])
-//	f.outputToInput = make(map[[3]int]float64)
-//	f.outputToEachInput = make(map[[3]int]map[[3]int]float64)
-//}
-//
-//func (f *Pooling) Forward() {
-//	f.input = f.GetPrev().GetOutput()
-//
-//	f.output.MapIndex(func(outputIndex []int, _ float64) float64 {
-//		outputIndexArray := [3]int{}
-//		copy(outputIndexArray[:], outputIndex)
-//		f.outputToEachInput[outputIndexArray] = make(map[[3]int]float64)
-//
-//		depth := outputIndex[2]
-//		maxIndex := []int{0, 0}
-//		maxValue := 0.0
-//		sum := 0.0
-//		for i := 0; i < f.Size; i++ {
-//			for j := 0; j < f.Size; j++ {
-//				inputX := outputIndex[0] + i - f.Padding
-//				inputY := outputIndex[1] + j - f.Padding
-//				inputValue := func() (result float64) {
-//					if inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1] {
-//						return 0.0
-//					} else if f.input.GetDim() == 2 {
-//						return f.input.GetValue([]int{inputX, inputY})
-//					} else {
-//						return f.input.GetValue([]int{inputX, inputY, depth})
-//					}
-//				}()
-//				switch f.Type {
-//				case POOL_MAX:
-//					if inputValue > maxValue {
-//						maxValue = inputValue
-//						maxIndex[0] = i
-//						maxIndex[1] = j
-//					}
-//				case POOL_AVG:
-//					f.outputToEachInput[outputIndexArray][[3]int{i, j, depth}] = 1 / float64(f.Size*f.Size)
-//					sum += inputValue
-//				case POOL_SUM:
-//					f.outputToEachInput[outputIndexArray][[3]int{i, j, depth}] = 1
-//					sum += inputValue
-//				}
-//			}
-//		}
-//		switch f.Type {
-//		case POOL_MAX:
-//			f.outputToEachInput[outputIndexArray][[3]int{maxIndex[0], maxIndex[1], depth}] = 1
-//			return maxValue
-//		case POOL_AVG:
-//			return sum / float64(f.Size*f.Size)
-//		case POOL_SUM:
-//			return sum
-//		}
-//		return 0
-//	})
-//}
-//
-//func (f *Pooling) Backward() {
-//	f.errorToOutput = f.GetNext().GetErrorToInput()
-//	outputIndexArray := [3]int{}
-//	inputIndexArray := [3]int{}
-//	f.errorToInput = ErrorToInputByFunc(f.errorToOutput, f.InputSize[:], func(outputIndex, inputIndex []int) float64 {
-//		copy(outputIndexArray[:], outputIndex)
-//		copy(inputIndexArray[:], inputIndex)
-//		return f.outputToEachInput[outputIndexArray][inputIndexArray]
-//	})
-//}
-//
-//func (f *Pooling) Learn() {
-//	// do nothing
-//}
-//
-//func (f *Pooling) GetInput() data.Data {
-//	return f.input
-//}
-//
-//func (f *Pooling) GetOutput() data.Data {
-//	return f.output
-//}
-//
-//func (f *Pooling) GetErrorToInput() data.Data {
-//	return f.errorToInput
-//}
-//
-//func (f *Pooling) GetOutputSize() []int {
-//	return f.OutputSize[:]
-//}
+import (
+	. "github.com/XDean/go-machine-learning/ann/core/model"
+	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	"math"
+)
+
+func init() {
+	persistent.Register(new(Pooling))
+}
+
+type (
+	PoolingType int
+	Pooling     struct {
+		BaseLayer
+
+		Type    PoolingType
+		Size    int // F
+		Stride  int // S
+		Padding int // P
+
+		InputSize [3]int // D1 * W1 * H1
+		// W2 = (W1 + 2P - F) / S + 1
+		// H2 = (H1 + 2P - F) / S + 1
+		OutputSize [3]int // D1 * W2 * H2
+
+		input         Data
+		output        Data
+		errorToOutput Data     // output
+		errorToInput  Data     // input
+		outputToInput [][]Data // F * F * output
+	}
+
+	PoolingConfig struct {
+		Type    PoolingType
+		Size    int
+		Padding int
+		Stride  int
+	}
+)
+
+const (
+	POOL_MAX PoolingType = iota + 1
+	POOL_AVG
+	POOL_SUM
+)
+
+var (
+	PoolingDefaultConfig = PoolingConfig{
+		Type:    POOL_MAX,
+		Size:    2,
+		Padding: 0,
+		Stride:  1,
+	}
+)
+
+func NewPooling(config PoolingConfig) *Pooling {
+	if config.Type == 0 {
+		config.Type = PoolingDefaultConfig.Type
+	}
+	if config.Size == 0 {
+		config.Size = PoolingDefaultConfig.Size
+	}
+	if config.Stride == 0 {
+		config.Stride = PoolingDefaultConfig.Stride
+	}
+	return &Pooling{
+		Type:    config.Type,
+		Size:    config.Size,
+		Stride:  config.Stride,
+		Padding: config.Padding,
+	}
+}
+
+func (f *Pooling) Init() {
+	inputSize := f.GetPrev().GetOutputSize()
+	if !f.BaseLayer.Init {
+		f.BaseLayer.Init = true
+		f.InputSize = inputSize
+		f.OutputSize = [3]int{
+			f.InputSize[0],
+			(f.InputSize[1]+2*f.Padding-f.Size)/f.Stride + 1,
+			(f.InputSize[2]+2*f.Padding-f.Size)/f.Stride + 1,
+		}
+	}
+	f.output = NewData(f.OutputSize)
+	f.errorToOutput = NewData(f.OutputSize)
+	f.outputToInput = make([][]Data, f.Size)
+	for i := range f.outputToInput {
+		f.outputToInput[i] = make([]Data, f.Size)
+		for j := range f.outputToInput[i] {
+			f.outputToInput[i][j] = NewData(f.OutputSize)
+		}
+	}
+}
+
+func (f *Pooling) Forward() {
+	f.input = f.GetPrev().GetOutput()
+	f.output.MapIndex(func(dep, x, y int, _ float64) float64 {
+		maxIndex := [2]int{0, 0}
+		maxValue := -math.MaxFloat64
+		sum := 0.0
+		for i := 0; i < f.Size; i++ {
+			for j := 0; j < f.Size; j++ {
+				inputX := x + i - f.Padding
+				inputY := y + j - f.Padding
+				isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
+				inputValue := 0.0
+				if !isPadding {
+					inputValue = f.input.Value[dep][inputX][inputY]
+				}
+				switch f.Type {
+				case POOL_MAX:
+					if inputValue > maxValue {
+						f.outputToInput[i][j].Value[dep][x][y] = 1
+						f.outputToInput[maxIndex[0]][maxIndex[1]].Value[dep][x][y] = 0
+						maxValue = inputValue
+						maxIndex[0] = i
+						maxIndex[1] = j
+					} else {
+						f.outputToInput[i][j].Value[dep][x][y] = 0
+					}
+				case POOL_AVG:
+					sum += inputValue
+				case POOL_SUM:
+					sum += inputValue
+				}
+			}
+		}
+		switch f.Type {
+		case POOL_MAX:
+			return maxValue
+		case POOL_AVG:
+			return sum / float64(f.Size*f.Size)
+		case POOL_SUM:
+			return sum
+		default:
+			panic("Unknown pooling type")
+		}
+	})
+}
+
+func (f *Pooling) Backward() {
+	f.errorToOutput = f.GetNext().GetErrorToInput()
+}
+
+func (f *Pooling) Learn() {
+	// do nothing
+}
+
+func (f *Pooling) GetInput() Data {
+	return f.input
+}
+
+func (f *Pooling) GetOutput() Data {
+	return f.output
+}
+
+func (f *Pooling) GetErrorToInput() Data {
+	result := NewData(f.InputSize)
+	avg := 1.0 / float64(f.Size*f.Size)
+	f.errorToOutput.ForEachIndex(func(dep, x, y int, value float64) {
+		for i := 0; i < f.Size; i++ {
+			for j := 0; j < f.Size; j++ {
+				inputX := x + i - f.Padding
+				inputY := y + j - f.Padding
+				isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
+				if isPadding {
+					continue
+				}
+				switch f.Type {
+				case POOL_MAX:
+					result.Value[dep][inputX][inputY] += value * f.outputToInput[i][j].Value[dep][x][y]
+				case POOL_AVG:
+					result.Value[dep][inputX][inputY] += value * avg
+				case POOL_SUM:
+					result.Value[dep][inputX][inputY] += value
+				}
+			}
+		}
+	})
+	return result
+}
+
+func (f *Pooling) GetOutputSize() []int {
+	return f.OutputSize[:]
+}

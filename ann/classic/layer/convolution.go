@@ -95,14 +95,14 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 
 func (f *Convolution) Init() {
 	inputSize := f.GetPrev().GetOutputSize()
-	weightSize := [3]int{f.KernelSize, f.KernelSize, inputSize[2]}
+	weightSize := [3]int{f.KernelSize, f.KernelSize, inputSize[0]}
 	if !f.BaseLayer.Init {
 		f.BaseLayer.Init = true
 		f.InputSize = inputSize
 		f.OutputSize = [3]int{
 			f.KernelCount,
-			(inputSize[0]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 			(inputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
+			(inputSize[2]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 		}
 		f.Weight = make([]Data, f.KernelCount)
 		for i := range f.Weight {
@@ -136,7 +136,6 @@ func (f *Convolution) Init() {
 
 func (f *Convolution) Forward() {
 	f.input = f.GetPrev().GetOutput()
-
 	f.output.ForEachIndex(func(kernel, x, y int, value float64) {
 		net := 0.0
 		for i := 0; i < f.KernelSize; i++ {
