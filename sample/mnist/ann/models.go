@@ -9,6 +9,7 @@ import (
 )
 
 func init() {
+	// 92.24%
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
@@ -23,6 +24,7 @@ func init() {
 		},
 	})
 
+	// 94.46%
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
@@ -38,6 +40,12 @@ func init() {
 		},
 	})
 
+	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
+	layer.ConvolutionDefaultConfig.WeightInit = &weight.NormalInit{Std: 1}
+	layer.ConvolutionDefaultConfig.Activation = activation.Sigmoid{}
+	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
+	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	RegisterModel(&model.Model{
 		Name:      "Classic CNN",
 		ErrorFunc: loss.Square{},

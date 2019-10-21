@@ -144,7 +144,6 @@ func (m *Model) forLayerReverse(f func(int, Layer)) {
 func (m *Model) forward() {
 	m.forLayer(func(i int, layer Layer) {
 		layer.Forward()
-		//fmt.Println(layer.GetOutput().ToArray())
 	})
 }
 
