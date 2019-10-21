@@ -24,10 +24,11 @@ type (
 		Weight    []Data  //  a * i
 		Bias      float64 // TODO, not used now
 
-		output         Data   // a
-		errorToOutput  Data   // a, ∂E / ∂a
-		outputToInput  []Data // a * i, ∂a / ∂i
-		outputToWeight []Data // a * i, ∂a / ∂w
+		output         Data      // a
+		errorToOutput  Data      // a, ∂E / ∂a
+		outputToInput  []Data    // a * i, ∂a / ∂i
+		outputToWeight []Data    // a * i, ∂a / ∂w
+		outputToNet    []float64 // a
 	}
 
 	FullConnectConfig struct {
@@ -81,6 +82,7 @@ func (f *FullConnect) Init() {
 	f.output = NewData([3]int{1, 1, f.Size})
 	f.outputToInput = f.newOutputToInputArray(inputSize)
 	f.outputToWeight = f.newOutputToInputArray(inputSize)
+	f.outputToNet = make([]float64, f.Size)
 }
 
 func (f *FullConnect) newOutputToInputArray(inputSize Size) []Data {
@@ -94,7 +96,7 @@ func (f *FullConnect) newOutputToInputArray(inputSize Size) []Data {
 func (f *FullConnect) Forward() {
 	input := f.GetPrev().GetOutput()
 	for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
-		net := 0.0
+		net := f.Bias
 		for i := range input.Value {
 			for j := range input.Value[i] {
 				for k, inputValue := range input.Value[i][j] {
@@ -110,6 +112,7 @@ func (f *FullConnect) Forward() {
 					weight := f.Weight[outputIndex].Value[i][j][k]
 					f.outputToInput[outputIndex].Value[i][j][k] = weight * partial
 					f.outputToWeight[outputIndex].Value[i][j][k] = inputValue * partial
+					f.outputToNet[outputIndex] = partial
 				}
 			}
 		}
@@ -125,13 +128,18 @@ func (f *FullConnect) Learn() {
 	for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
 		for i := range f.Weight[outputIndex].Value {
 			for j := range f.Weight[outputIndex].Value[i] {
-				for k, w := range f.Weight[outputIndex].Value[i][j] {
-					f.Weight[outputIndex].Value[i][j][k] = w -
-						f.LearningRatio*f.errorToOutput.Value[0][0][outputIndex]*f.outputToWeight[outputIndex].Value[i][j][k]
+				for k := range f.Weight[outputIndex].Value[i][j] {
+					f.Weight[outputIndex].Value[i][j][k] -=
+						f.LearningRatio * f.errorToOutput.Value[0][0][outputIndex] * f.outputToWeight[outputIndex].Value[i][j][k]
 				}
 			}
 		}
 	}
+	biasPartial := 0.0 // ∂E / ∂b
+	for outputIndex, v := range f.outputToNet {
+		biasPartial += f.errorToOutput.Value[0][0][outputIndex] * v
+	}
+	f.Bias -= f.LearningRatio * biasPartial
 }
 
 func (f *FullConnect) GetOutput() Data {

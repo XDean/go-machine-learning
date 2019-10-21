@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	// 92.24%
+	// 92.94%
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
@@ -24,7 +24,7 @@ func init() {
 		},
 	})
 
-	// 94.46%
+	// 95.08%
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
