@@ -2,6 +2,7 @@ package layer
 
 import (
 	. "github.com/XDean/go-machine-learning/ann/classic"
+	"github.com/XDean/go-machine-learning/ann/classic/weight"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/XDean/go-machine-learning/ann/core/persistent"
 )
@@ -21,7 +22,7 @@ type (
 
 		Activation    Activation
 		LearningRatio float64
-		WeightInit    WeightInit
+		WeightInit    weight.Init
 
 		Weight []Data    // K * F * F * D1
 		Bias   []float64 // TODO, not used now
@@ -48,7 +49,7 @@ type (
 		Padding       int // P
 		Activation    Activation
 		LearningRatio float64
-		WeightInit    WeightInit
+		WeightInit    weight.Init
 	}
 )
 
@@ -59,7 +60,7 @@ var (
 		Stride:        1,
 		Activation:    Sigmoid{},
 		LearningRatio: 0.1,
-		WeightInit:    &NormalInit{Mean: 0, Std: 0.1},
+		WeightInit:    &weight.NormalInit{Mean: 0, Std: 0.1},
 	}
 )
 

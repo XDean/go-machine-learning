@@ -1,4 +1,4 @@
-package classic
+package weight
 
 import (
 	. "github.com/XDean/go-machine-learning/ann/core/model"
@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-type WeightInit interface {
+type Init interface {
 	Init(data Data) Data
 }
 
