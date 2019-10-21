@@ -1,4 +1,4 @@
-package classic
+package activation
 
 import (
 	"github.com/XDean/go-machine-learning/ann/core/persistent"

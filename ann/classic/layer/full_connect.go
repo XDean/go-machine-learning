@@ -2,6 +2,7 @@ package layer
 
 import (
 	. "github.com/XDean/go-machine-learning/ann/classic"
+	"github.com/XDean/go-machine-learning/ann/classic/activation"
 	"github.com/XDean/go-machine-learning/ann/classic/weight"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/XDean/go-machine-learning/ann/core/persistent"
@@ -16,7 +17,7 @@ type (
 		BaseLayer
 
 		Size          int
-		Activation    Activation
+		Activation    activation.Activation
 		LearningRatio float64
 		WeightInit    weight.Init
 
@@ -32,7 +33,7 @@ type (
 
 	FullConnectConfig struct {
 		Size          int
-		Activation    Activation
+		Activation    activation.Activation
 		LearningRatio float64
 		WeightInit    weight.Init
 	}
@@ -41,7 +42,7 @@ type (
 var (
 	FullConnectDefaultConfig = FullConnectConfig{
 		Size:          10,
-		Activation:    Sigmoid{},
+		Activation:    activation.Sigmoid{},
 		LearningRatio: 0.1,
 		WeightInit:    &weight.RandomInit{Range: 1},
 	}
