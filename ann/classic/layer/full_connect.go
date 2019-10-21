@@ -73,7 +73,10 @@ func (f *FullConnect) Init() {
 		f.BaseLayer.Init = true
 		f.InputSize = inputSize
 		f.Weight = f.newOutputToInputArray(inputSize)
-		f.Bias = 0
+		for _, v := range f.Weight {
+			f.WeightInit.InitData(v)
+		}
+		f.Bias = f.WeightInit.InitOne()
 	}
 	f.output = NewData([3]int{1, 1, f.Size})
 	f.outputToInput = f.newOutputToInputArray(inputSize)
@@ -83,7 +86,7 @@ func (f *FullConnect) Init() {
 func (f *FullConnect) newOutputToInputArray(inputSize Size) []Data {
 	result := make([]Data, f.Size)
 	for i := range result {
-		result[i] = f.WeightInit.Init(NewData(inputSize))
+		result[i] = NewData(inputSize)
 	}
 	return result
 }

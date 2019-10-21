@@ -107,7 +107,8 @@ func (f *Convolution) Init() {
 		}
 		f.Weight = make([]Data, f.KernelCount)
 		for i := range f.Weight {
-			f.Weight[i] = f.WeightInit.Init(NewData(weightSize))
+			f.Weight[i] = NewData(weightSize)
+			f.WeightInit.InitData(f.Weight[i])
 		}
 		f.Bias = make([]float64, f.KernelCount)
 	}
