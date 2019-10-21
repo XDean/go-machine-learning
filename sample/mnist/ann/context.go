@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/XDean/go-machine-learning/ann/core/model"
 	"github.com/XDean/go-machine-learning/ann/core/util"
-	"github.com/XDean/go-machine-learning/sample/mnist/data/mnist"
+	"github.com/XDean/go-machine-learning/sample/mnist"
 	"path/filepath"
 	"time"
 )

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/sample/mnist/data/mnist"
+	"github.com/XDean/go-machine-learning/sample/mnist"
 )
 
 func mnistToData(d mnist.Data) (input, target model.Data) {
