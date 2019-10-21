@@ -24,8 +24,12 @@ func NewData(size Size) Data {
 	return result
 }
 
-func (d Data) GetValue(i, j, k int) float64 {
-	return d.Value[i][j][k]
+func (s Size) GetCount() int {
+	count := 1
+	for _, v := range s {
+		count *= v
+	}
+	return count
 }
 
 func (d Data) ForEach(f func(value float64)) {

@@ -3,18 +3,22 @@ package main
 import (
 	"github.com/XDean/go-machine-learning/ann/classic"
 	"github.com/XDean/go-machine-learning/ann/classic/layer"
+	"github.com/XDean/go-machine-learning/ann/classic/loss"
 	"github.com/XDean/go-machine-learning/ann/core/model"
 )
 
 func init() {
+	//layer.FullConnectDefaultConfig.WeightInit = &classic.ZeroInit{}
+	//layer.FullConnectDefaultConfig.Activation = classic.ReLU{}
 	RegisterModel(&model.Model{
 		Name:      "Classic DNN (28 * 28) * 200 * 40 * 10",
-		ErrorFunc: classic.SquareError{},
+		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []model.Layer{
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 200}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 40}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+			layer.NewSoftMax(),
 		},
 	})
 
