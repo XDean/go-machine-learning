@@ -44,24 +44,37 @@ func init() {
 	layer.ConvolutionDefaultConfig.WeightInit = &weight.NormalInit{Std: 1}
 	layer.ConvolutionDefaultConfig.Activation = activation.Sigmoid{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
-	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
+	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	RegisterModel(&model.Model{
-		Name:      "Classic CNN",
+		Name:      "CNN - LeNet-5",
 		ErrorFunc: loss.Square{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []model.Layer{
 			layer.NewConvolution(layer.ConvolutionConfig{
-				KernelCount: 25,
-				KernelSize:  3,
-				Padding:     1,
-			}), // 25 * 28 * 28
+				KernelCount: 6,
+				KernelSize:  5,
+				Padding:     2,
+			}), // 6 * 28 * 28
+			layer.NewPooling(layer.PoolingConfig{
+				Type:    layer.POOL_AVG,
+				Size:    2,
+				Stride:  2,
+				Padding: 0,
+			}), // 6 * 14 * 14
+			layer.NewConvolution(layer.ConvolutionConfig{
+				KernelCount: 16,
+				KernelSize:  5,
+				Padding:     0,
+			}), // 16 * 10 * 10
 			layer.NewPooling(layer.PoolingConfig{
 				Type:    layer.POOL_MAX,
 				Size:    2,
 				Stride:  2,
 				Padding: 0,
-			}), // 25 * 14 * 14
+			}), // 6 * 5 * 5
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 120}),
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 84}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
 		},
 	})
