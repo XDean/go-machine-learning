@@ -1,4 +1,4 @@
-package classic
+package loss
 
 import (
 	. "github.com/XDean/go-machine-learning/ann/core/model"
@@ -11,7 +11,7 @@ func init() {
 
 type SquareError struct{}
 
-func (s SquareError) CalcError(target, actual Data) (error float64, partial Data) {
+func (s SquareError) CalcLoss(target, actual Data) (error float64, partial Data) {
 	partial = NewData(actual.Size)
 
 	target.ForEachIndex(func(i, j, k int, t float64) {

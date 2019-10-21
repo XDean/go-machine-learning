@@ -13,7 +13,7 @@ type (
 	Model struct {
 		Name      string
 		Layers    []Layer
-		ErrorFunc ErrorFunc
+		ErrorFunc LossFunc
 		InputSize [3]int
 	}
 

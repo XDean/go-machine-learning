@@ -13,7 +13,7 @@ func init() {
 type CrossEntropy struct {
 }
 
-func (c CrossEntropy) CalcError(target, actual model.Data) (error float64, partial model.Data) {
+func (c CrossEntropy) CalcLoss(target, actual model.Data) (error float64, partial model.Data) {
 	partial = model.NewData(actual.Size)
 	count := float64(target.Size.GetCount())
 	actual.ForEachIndex(func(i, j, k int, a float64) {

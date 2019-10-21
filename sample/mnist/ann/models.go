@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/XDean/go-machine-learning/ann/classic"
 	"github.com/XDean/go-machine-learning/ann/classic/layer"
 	"github.com/XDean/go-machine-learning/ann/classic/loss"
 	"github.com/XDean/go-machine-learning/ann/core/model"
@@ -24,7 +23,7 @@ func init() {
 
 	RegisterModel(&model.Model{
 		Name:      "Classic CNN",
-		ErrorFunc: classic.SquareError{},
+		ErrorFunc: loss.SquareError{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []model.Layer{
 			layer.NewConvolution(layer.ConvolutionConfig{

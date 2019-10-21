@@ -7,7 +7,7 @@ import (
 type EndLayer struct {
 	BaseLayer
 
-	ErrorFunc ErrorFunc
+	ErrorFunc LossFunc
 	Target    Data
 
 	Input        Data
@@ -15,7 +15,7 @@ type EndLayer struct {
 	ErrorToInput Data    // ∂E/∂a
 }
 
-func NewEndLayer(errorFunc ErrorFunc, target Data) *EndLayer {
+func NewEndLayer(errorFunc LossFunc, target Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
@@ -29,7 +29,7 @@ func (e *EndLayer) Init() {
 
 func (e *EndLayer) Forward() {
 	e.Input = e.prev.GetOutput()
-	e.TotalError, e.ErrorToInput = e.ErrorFunc.CalcError(e.Target, e.Input)
+	e.TotalError, e.ErrorToInput = e.ErrorFunc.CalcLoss(e.Target, e.Input)
 }
 
 func (e *EndLayer) Backward() {
