@@ -6,12 +6,12 @@ import (
 )
 
 func init() {
-	persistent.Register(SquareError{})
+	persistent.Register(Square{})
 }
 
-type SquareError struct{}
+type Square struct{}
 
-func (s SquareError) CalcLoss(target, actual Data) (error float64, partial Data) {
+func (s Square) CalcLoss(target, actual Data) (error float64, partial Data) {
 	partial = NewData(actual.Size)
 
 	target.ForEachIndex(func(i, j, k int, t float64) {

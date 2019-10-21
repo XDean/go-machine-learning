@@ -1,7 +1,6 @@
 package layer
 
 import (
-	. "github.com/XDean/go-machine-learning/ann/classic"
 	"github.com/XDean/go-machine-learning/ann/classic/activation"
 	"github.com/XDean/go-machine-learning/ann/classic/weight"
 	. "github.com/XDean/go-machine-learning/ann/core/model"
@@ -41,7 +40,6 @@ type (
 
 var (
 	FullConnectDefaultConfig = FullConnectConfig{
-		Size:          10,
 		Activation:    activation.Sigmoid{},
 		LearningRatio: 0.1,
 		WeightInit:    &weight.RandomInit{Range: 1},
@@ -50,7 +48,7 @@ var (
 
 func NewFullConnect(config FullConnectConfig) *FullConnect {
 	if config.Size == 0 {
-		config.Size = FullConnectDefaultConfig.Size
+		panic("Full Connect size not specified")
 	}
 	if config.Activation == nil {
 		config.Activation = FullConnectDefaultConfig.Activation
