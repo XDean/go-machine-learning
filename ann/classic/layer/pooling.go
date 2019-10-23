@@ -113,8 +113,8 @@ func (f *Pooling) Forward() {
 				switch f.Type {
 				case POOL_MAX:
 					if inputValue > maxValue {
-						f.outputToInput[i][j].Value[dep][x][y] = 1
 						f.outputToInput[maxIndex[0]][maxIndex[1]].Value[dep][x][y] = 0
+						f.outputToInput[i][j].Value[dep][x][y] = 1
 						maxValue = inputValue
 						maxIndex[0] = i
 						maxIndex[1] = j
