@@ -4,6 +4,7 @@ import "github.com/XDean/go-machine-learning/ann/core/persistent"
 
 func init() {
 	persistent.Register(ReLU{})
+	persistent.Register(LeakReLU{})
 }
 
 type (

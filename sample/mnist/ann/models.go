@@ -89,8 +89,8 @@ func init() {
 			}), // 6 * 28 * 28
 			layer.NewPooling(layer.PoolingConfig{
 				Type:    layer.POOL_MAX,
-				Size:    2,
-				Stride:  2,
+				Size:    1,
+				Stride:  1,
 				Padding: 0,
 			}), // 6 * 14 * 14
 			layer.NewConvolution(layer.ConvolutionConfig{
@@ -100,8 +100,8 @@ func init() {
 			}), // 16 * 10 * 10
 			layer.NewPooling(layer.PoolingConfig{
 				Type:    layer.POOL_MAX,
-				Size:    2,
-				Stride:  2,
+				Size:    1,
+				Stride:  1,
 				Padding: 0,
 			}), // 6 * 5 * 5
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 120}),
