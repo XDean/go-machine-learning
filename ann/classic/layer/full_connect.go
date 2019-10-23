@@ -21,8 +21,8 @@ type (
 		WeightInit    weight.Init
 
 		InputSize Size
-		Weight    []Data  //  a * i
-		Bias      float64 // TODO, not used now
+		Weight    []Data //  a * i
+		Bias      float64
 
 		output         Data      // a
 		errorToOutput  Data      // a, ∂E / ∂a

@@ -25,7 +25,7 @@ type (
 		WeightInit    weight.Init
 
 		Weight []Data    // K * F * F * D1
-		Bias   []float64 // TODO, not used now
+		Bias   []float64 // K
 
 		InputSize Size // D1 * W1 * H1
 		// W2 = (W1 + 2P - F) / S + 1
@@ -33,13 +33,14 @@ type (
 		// D2 = K
 		OutputSize Size // K * W2 * H2
 
-		input          Data   // D1 * W1 * H1
-		output         Data   // K * W2 * H2
-		errorToOutput  Data   // output, ∂E / ∂a
-		errorToWeight  []Data // weight, ∂E / ∂w
-		outputPartial  Data
-		outputToInput  [][][]Data // output * F * F * D1, ∂a / ∂i, no active partial
-		outputToWeight [][][]Data // output * F * F * D1, ∂a / ∂w, no active partial
+		input         Data   // D1 * W1 * H1
+		output        Data   // K * W2 * H2
+		errorToOutput Data   // output, ∂E / ∂a
+		errorToWeight []Data // weight, ∂E / ∂w
+		errorToBias   []float64
+		outputToNet   Data
+		netToInput    [][][]Data // output * F * F * D1, ∂a / ∂i, no active partial
+		netToWeight   [][][]Data // output * F * F * D1, ∂a / ∂w, no active partial
 	}
 
 	ConvolutionConfig struct {
@@ -115,6 +116,7 @@ func (f *Convolution) Init() {
 	f.output = NewData(f.OutputSize)
 	f.errorToOutput = NewData(f.OutputSize)
 	f.errorToWeight = make([]Data, f.KernelCount)
+	f.errorToBias = make([]float64, f.KernelCount)
 	for i := range f.errorToWeight {
 		f.errorToWeight[i] = NewData(weightSize)
 	}
@@ -131,15 +133,15 @@ func (f *Convolution) Init() {
 		}
 		return result
 	}
-	f.outputToWeight = newO2W()
-	f.outputToInput = newO2W()
-	f.outputPartial = NewData(f.OutputSize)
+	f.netToWeight = newO2W()
+	f.netToInput = newO2W()
+	f.outputToNet = NewData(f.OutputSize)
 }
 
 func (f *Convolution) Forward() {
 	f.input = f.GetPrev().GetOutput()
 	f.output.ForEachIndex(func(kernel, x, y int, value float64) {
-		net := 0.0
+		net := f.Bias[kernel]
 		for i := 0; i < f.KernelSize; i++ {
 			for j := 0; j < f.KernelSize; j++ {
 				for z := 0; z < f.InputSize[0]; z++ {
@@ -153,30 +155,37 @@ func (f *Convolution) Forward() {
 					}
 					net += inputValue * weight
 					if !isPadding {
-						f.outputToInput[kernel][x][y].Value[z][i][j] = weight
+						f.netToInput[kernel][x][y].Value[z][i][j] = weight
+						f.netToWeight[kernel][x][y].Value[z][i][j] = inputValue
 					}
-					f.outputToWeight[kernel][x][y].Value[z][i][j] = inputValue
 				}
 			}
 		}
 		output, partial := f.Activation.Active(net)
 		f.output.Value[kernel][x][y] = output
-		f.outputPartial.Value[kernel][x][y] = partial
+		f.outputToNet.Value[kernel][x][y] = partial
 	})
 }
 
 func (f *Convolution) Backward() {
 	f.errorToOutput = f.GetNext().GetErrorToInput()
-	for n, v := range f.errorToWeight {
+	for kernel, v := range f.errorToWeight {
 		v.MapIndex(func(i, j, k int, value float64) float64 {
 			sum := 0.0
-			for x := range f.errorToOutput.Value[n] {
-				for y := range f.errorToOutput.Value[n][x] {
-					sum += f.errorToOutput.Value[n][x][y] * f.outputToWeight[n][x][y].Value[i][j][k] * f.outputPartial.Value[n][x][y]
+			for x := range f.errorToOutput.Value[kernel] {
+				for y := range f.errorToOutput.Value[kernel][x] {
+					sum += f.errorToOutput.Value[kernel][x][y] * f.outputToNet.Value[kernel][x][y] * f.netToWeight[kernel][x][y].Value[i][j][k]
 				}
 			}
 			return sum
 		})
+		sum := 0.0
+		for x := range f.errorToOutput.Value[kernel] {
+			for y := range f.errorToOutput.Value[kernel][x] {
+				sum += f.errorToOutput.Value[kernel][x][y] * f.outputToNet.Value[kernel][x][y]
+			}
+		}
+		f.errorToBias[kernel] = sum
 	}
 }
 
@@ -185,6 +194,9 @@ func (f *Convolution) Learn() {
 		v.MapIndex(func(i, j, k int, value float64) float64 {
 			return value - f.LearningRatio*f.errorToWeight[n].Value[i][j][k]
 		})
+	}
+	for i := range f.Bias {
+		f.Bias[i] -= f.LearningRatio * f.errorToBias[i]
 	}
 }
 
@@ -212,7 +224,7 @@ func (f *Convolution) GetErrorToInput() Data {
 					if isPadding {
 						continue
 					}
-					result.Value[z][inputX][inputY] += v * f.outputToInput[kernel][x][y].Value[z][i][j] * f.outputPartial.Value[kernel][x][y]
+					result.Value[z][inputX][inputY] += v * f.netToInput[kernel][x][y].Value[z][i][j] * f.outputToNet.Value[kernel][x][y]
 				}
 			}
 		}

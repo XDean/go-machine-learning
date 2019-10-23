@@ -41,11 +41,42 @@ func init() {
 	})
 
 	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
-	layer.ConvolutionDefaultConfig.WeightInit = &weight.NormalInit{Std: 1}
-	layer.ConvolutionDefaultConfig.Activation = activation.Sigmoid{}
+	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
+	layer.ConvolutionDefaultConfig.Activation = activation.ReLU{}
+
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
+
+	// 93.46%
+	RegisterModel(&model.Model{
+		Name:      "CNN AS DNN - Sigmoid - Square Loss - (28 * 28) * 200 * 40 * 10",
+		ErrorFunc: loss.CrossEntropy{},
+		InputSize: [3]int{1, 28, 28},
+		Layers: []model.Layer{
+			layer.NewConvolution(layer.ConvolutionConfig{
+				KernelCount: 200,
+				KernelSize:  28,
+				Padding:     0,
+			}), // 200
+			layer.NewConvolution(layer.ConvolutionConfig{
+				KernelCount: 40,
+				KernelSize:  1,
+				Padding:     0,
+			}), // 40
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+			layer.NewSoftMax(),
+		},
+	})
+
+	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
+	layer.ConvolutionDefaultConfig.WeightInit = &weight.NormalInit{Std: 1}
+	layer.ConvolutionDefaultConfig.Activation = activation.Sigmoid{}
+
+	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
+	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
+
 	RegisterModel(&model.Model{
 		Name:      "CNN - LeNet-5",
 		ErrorFunc: loss.Square{},
@@ -57,7 +88,7 @@ func init() {
 				Padding:     2,
 			}), // 6 * 28 * 28
 			layer.NewPooling(layer.PoolingConfig{
-				Type:    layer.POOL_AVG,
+				Type:    layer.POOL_MAX,
 				Size:    2,
 				Stride:  2,
 				Padding: 0,
