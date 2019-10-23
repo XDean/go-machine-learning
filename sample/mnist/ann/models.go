@@ -35,7 +35,7 @@ func init() {
 		Layers: []model.Layer{
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 200}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 40}),
-			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),
 			layer.NewSoftMax(),
 		},
 	})
@@ -50,7 +50,7 @@ func init() {
 
 	// 93.46%
 	RegisterModel(&model.Model{
-		Name:      "CNN AS DNN - Sigmoid - Square Loss - (28 * 28) * 200 * 40 * 10",
+		Name:      "CNN AS DNN - ReLU - SoftMax - CrossEntropy - (28 * 28) * 200 * 40 * 10",
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []model.Layer{
@@ -79,7 +79,7 @@ func init() {
 
 	RegisterModel(&model.Model{
 		Name:      "CNN - LeNet-5",
-		ErrorFunc: loss.Square{},
+		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []model.Layer{
 			layer.NewConvolution(layer.ConvolutionConfig{
@@ -88,9 +88,9 @@ func init() {
 				Padding:     2,
 			}), // 6 * 28 * 28
 			layer.NewPooling(layer.PoolingConfig{
-				Type:    layer.POOL_MAX,
-				Size:    1,
-				Stride:  1,
+				Type:    layer.POOL_SUM,
+				Size:    2,
+				Stride:  2,
 				Padding: 0,
 			}), // 6 * 14 * 14
 			layer.NewConvolution(layer.ConvolutionConfig{
@@ -100,13 +100,14 @@ func init() {
 			}), // 16 * 10 * 10
 			layer.NewPooling(layer.PoolingConfig{
 				Type:    layer.POOL_MAX,
-				Size:    1,
-				Stride:  1,
+				Size:    2,
+				Stride:  2,
 				Padding: 0,
 			}), // 6 * 5 * 5
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 120}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 84}),
-			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
+			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),
+			layer.NewSoftMax(),
 		},
 	})
 }
