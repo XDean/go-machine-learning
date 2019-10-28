@@ -13,8 +13,6 @@ func init() {
 
 type (
 	Convolution struct {
-		BaseLayer
-
 		KernelCount int // K
 		KernelSize  int // F
 		Stride      int // S
@@ -32,7 +30,10 @@ type (
 		// H2 = (H1 + 2P - F) / S + 1
 		// D2 = K
 		OutputSize Size // K * W2 * H2
+	}
 
+	convolutionContext struct {
+		layer         *Convolution
 		input         Data   // D1 * W1 * H1
 		output        Data   // K * W2 * H2
 		errorToOutput Data   // output, ∂E / ∂a
@@ -94,31 +95,43 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 		WeightInit:    config.WeightInit,
 	}
 }
-
-func (f *Convolution) Init() {
-	inputSize := f.GetPrev().GetOutputSize()
+func (f *Convolution) Init(prev, next Layer) {
+	inputSize := prev.GetOutputSize()
 	weightSize := [3]int{inputSize[0], f.KernelSize, f.KernelSize}
-	if !f.BaseLayer.Init {
-		f.BaseLayer.Init = true
-		f.InputSize = inputSize
-		f.OutputSize = [3]int{
-			f.KernelCount,
-			(inputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
-			(inputSize[2]+2*f.Padding-f.KernelSize)/f.Stride + 1,
-		}
-		f.Weight = make([]Data, f.KernelCount)
-		for i := range f.Weight {
-			f.Weight[i] = NewData(weightSize)
-			f.WeightInit.InitData(f.Weight[i])
-		}
-		f.Bias = make([]float64, f.KernelCount)
+	f.InputSize = inputSize
+	f.OutputSize = [3]int{
+		f.KernelCount,
+		(inputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
+		(inputSize[2]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 	}
-	f.output = NewData(f.OutputSize)
-	f.errorToOutput = NewData(f.OutputSize)
-	f.errorToWeight = make([]Data, f.KernelCount)
-	f.errorToBias = make([]float64, f.KernelCount)
-	for i := range f.errorToWeight {
-		f.errorToWeight[i] = NewData(weightSize)
+	f.Weight = make([]Data, f.KernelCount)
+	for i := range f.Weight {
+		f.Weight[i] = NewData(weightSize)
+		f.WeightInit.InitData(f.Weight[i])
+	}
+	f.Bias = make([]float64, f.KernelCount)
+}
+
+func (f *Convolution) Learn(ctxs []Context) {
+	size := float64(len(ctxs))
+	for _, v := range ctxs {
+		ctx := v.(*convolutionContext)
+		for n, v := range f.Weight {
+			v.MapIndex(func(i, j, k int, value float64) float64 {
+				return value - f.LearningRatio*ctx.errorToWeight[n].Value[i][j][k]/size
+			})
+		}
+		for i := range f.Bias {
+			f.Bias[i] -= f.LearningRatio * ctx.errorToBias[i] / size
+		}
+	}
+}
+
+func (f *Convolution) NewContext() Context {
+	errorToWeight := make([]Data, f.KernelCount)
+	weightSize := [3]int{f.InputSize[0], f.KernelSize, f.KernelSize}
+	for i := range errorToWeight {
+		errorToWeight[i] = NewData(weightSize)
 	}
 	newO2W := func() [][][]Data {
 		result := make([][][]Data, f.OutputSize[0])
@@ -133,22 +146,29 @@ func (f *Convolution) Init() {
 		}
 		return result
 	}
-	f.netToWeight = newO2W()
-	f.netToInput = newO2W()
-	f.outputToNet = NewData(f.OutputSize)
+	return &convolutionContext{
+		layer:         f,
+		output:        NewData(f.OutputSize),
+		errorToOutput: NewData(f.OutputSize),
+		errorToWeight: errorToWeight,
+		errorToBias:   make([]float64, f.KernelCount),
+		netToWeight:   newO2W(),
+		netToInput:    newO2W(),
+		outputToNet:   NewData(f.OutputSize),
+	}
 }
 
-func (f *Convolution) Forward() {
-	f.input = f.GetPrev().GetOutput()
+func (f *convolutionContext) Forward(prev Context) {
+	f.input = prev.GetOutput()
 	f.output.ForEachIndex(func(kernel, x, y int, value float64) {
-		net := f.Bias[kernel]
-		for i := 0; i < f.KernelSize; i++ {
-			for j := 0; j < f.KernelSize; j++ {
-				for z := 0; z < f.InputSize[0]; z++ {
-					inputX := x + i - f.Padding
-					inputY := y + j - f.Padding
-					weight := f.Weight[kernel].Value[z][i][j]
-					isPadding := inputX < 0 || inputX >= f.InputSize[1] || inputY < 0 || inputY >= f.InputSize[2]
+		net := f.layer.Bias[kernel]
+		for i := 0; i < f.layer.KernelSize; i++ {
+			for j := 0; j < f.layer.KernelSize; j++ {
+				for z := 0; z < f.layer.InputSize[0]; z++ {
+					inputX := x + i - f.layer.Padding
+					inputY := y + j - f.layer.Padding
+					weight := f.layer.Weight[kernel].Value[z][i][j]
+					isPadding := inputX < 0 || inputX >= f.layer.InputSize[1] || inputY < 0 || inputY >= f.layer.InputSize[2]
 					inputValue := 0.0
 					if !isPadding {
 						inputValue = f.input.Value[z][inputX][inputY]
@@ -161,14 +181,14 @@ func (f *Convolution) Forward() {
 				}
 			}
 		}
-		output, partial := f.Activation.Active(net)
+		output, partial := f.layer.Activation.Active(net)
 		f.output.Value[kernel][x][y] = output
 		f.outputToNet.Value[kernel][x][y] = partial
 	})
 }
 
-func (f *Convolution) Backward() {
-	f.errorToOutput = f.GetNext().GetErrorToInput()
+func (f *convolutionContext) Backward(next Context) {
+	f.errorToOutput = next.GetErrorToInput()
 	for kernel, v := range f.errorToWeight {
 		v.MapIndex(func(i, j, k int, value float64) float64 {
 			sum := 0.0
@@ -189,38 +209,19 @@ func (f *Convolution) Backward() {
 	}
 }
 
-func (f *Convolution) Learn() {
-	for n, v := range f.Weight {
-		v.MapIndex(func(i, j, k int, value float64) float64 {
-			return value - f.LearningRatio*f.errorToWeight[n].Value[i][j][k]
-		})
-	}
-	for i := range f.Bias {
-		f.Bias[i] -= f.LearningRatio * f.errorToBias[i]
-	}
-}
-
-func (f *Convolution) GetInput() Data {
-	return f.input
-}
-
-func (f *Convolution) GetOutput() Data {
+func (f *convolutionContext) GetOutput() Data {
 	return f.output
 }
 
-func (f *Convolution) GetOutputSize() Size {
-	return f.OutputSize
-}
-
-func (f *Convolution) GetErrorToInput() Data {
-	result := NewData(f.InputSize)
+func (f *convolutionContext) GetErrorToInput() Data {
+	result := NewData(f.layer.InputSize)
 	f.errorToOutput.ForEachIndex(func(kernel, x, y int, v float64) {
-		for i := 0; i < f.KernelSize; i++ {
-			for j := 0; j < f.KernelSize; j++ {
-				for z := 0; z < f.InputSize[0]; z++ {
-					inputX := x + i - f.Padding
-					inputY := y + j - f.Padding
-					isPadding := inputX < 0 || inputX >= f.InputSize[1] || inputY < 0 || inputY >= f.InputSize[2]
+		for i := 0; i < f.layer.KernelSize; i++ {
+			for j := 0; j < f.layer.KernelSize; j++ {
+				for z := 0; z < f.layer.InputSize[0]; z++ {
+					inputX := x + i - f.layer.Padding
+					inputY := y + j - f.layer.Padding
+					isPadding := inputX < 0 || inputX >= f.layer.InputSize[1] || inputY < 0 || inputY >= f.layer.InputSize[2]
 					if isPadding {
 						continue
 					}
@@ -230,4 +231,8 @@ func (f *Convolution) GetErrorToInput() Data {
 		}
 	})
 	return result
+}
+
+func (f *Convolution) GetOutputSize() Size {
+	return f.OutputSize
 }

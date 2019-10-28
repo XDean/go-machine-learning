@@ -103,6 +103,7 @@ func (f *FullConnect) Learn(ctxs []Context) {
 
 func (f *FullConnect) NewContext() Context {
 	return &fullConnectContext{
+		layer:          f,
 		output:         NewData([3]int{1, 1, f.Size}),
 		outputToInput:  f.newOutputToInputArray(f.InputSize),
 		outputToWeight: f.newOutputToInputArray(f.InputSize),

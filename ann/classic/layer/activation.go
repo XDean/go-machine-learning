@@ -39,6 +39,7 @@ func (f *Activation) Learn([]Context) {
 
 func (f *Activation) NewContext() Context {
 	return &activationContext{
+		layer:         f,
 		output:        NewData(f.InputSize),
 		errorToOutput: NewData(f.InputSize),
 		outputToInput: NewData(f.InputSize),

@@ -10,30 +10,39 @@ func init() {
 	persistent.Register(new(SoftMax))
 }
 
-type SoftMax struct {
-	BaseLayer
-
-	Size Size
-
-	output        Data
-	errorToOutput Data
-}
+type (
+	SoftMax struct {
+		Size Size
+	}
+	softMaxContext struct {
+		layer         *SoftMax
+		output        Data
+		errorToOutput Data
+	}
+)
 
 func NewSoftMax() *SoftMax {
 	return &SoftMax{}
 }
 
-func (s *SoftMax) Init() {
-	inputSize := s.GetPrev().GetOutputSize()
-	if !s.BaseLayer.Init {
-		s.BaseLayer.Init = true
-		s.Size = inputSize
-	}
-	s.output = NewData(s.Size)
+func (f *SoftMax) Init(prev, next Layer) {
+	inputSize := prev.GetOutputSize()
+	f.Size = inputSize
 }
 
-func (s *SoftMax) Forward() {
-	input := s.GetPrev().GetOutput()
+func (f *SoftMax) Learn(ctxs []Context) {
+	panic("implement me")
+}
+
+func (f *SoftMax) NewContext() Context {
+	return &softMaxContext{
+		layer:  f,
+		output: NewData(f.Size),
+	}
+}
+
+func (f *softMaxContext) Forward(prev Context) {
+	input := prev.GetOutput()
 	max := 0.0
 	input.ForEach(func(value float64) {
 		if value > max {
@@ -44,35 +53,31 @@ func (s *SoftMax) Forward() {
 	input.ForEachIndex(func(i, j, k int, value float64) {
 		exp := math.Exp(value - max)
 		sum += exp
-		s.output.Value[i][j][k] = exp
+		f.output.Value[i][j][k] = exp
 	})
-	s.output.Map(func(value float64) float64 {
+	f.output.Map(func(value float64) float64 {
 		return value / sum
 	})
 }
 
-func (s *SoftMax) Backward() {
-	s.errorToOutput = s.GetNext().GetErrorToInput()
+func (f *softMaxContext) Backward(next Context) {
+	f.errorToOutput = next.GetErrorToInput()
 }
 
-func (s *SoftMax) Learn() {
-	// do nothing
+func (f *softMaxContext) GetOutput() Data {
+	return f.output
 }
 
-func (s *SoftMax) GetOutput() Data {
-	return s.output
-}
-
-func (s *SoftMax) GetErrorToInput() Data {
-	result := NewData(s.Size)
+func (f *softMaxContext) GetErrorToInput() Data {
+	result := NewData(f.layer.Size)
 	result.MapIndex(func(i1, j1, k1 int, _ float64) float64 {
 		sum := 0.0
-		s.errorToOutput.ForEachIndex(func(i2, j2, k2 int, value float64) {
-			outputValue := s.output.Value[i2][j2][k2]
+		f.errorToOutput.ForEachIndex(func(i2, j2, k2 int, value float64) {
+			outputValue := f.output.Value[i2][j2][k2]
 			if i1 == i2 && j1 == j2 && k1 == k2 {
 				sum += value * outputValue * (1 - outputValue)
 			} else {
-				sum += value * -outputValue * s.output.Value[i1][j1][k1]
+				sum += value * -outputValue * f.output.Value[i1][j1][k1]
 			}
 		})
 		return sum
@@ -80,6 +85,6 @@ func (s *SoftMax) GetErrorToInput() Data {
 	return result
 }
 
-func (s *SoftMax) GetOutputSize() Size {
-	return s.Size
+func (f *SoftMax) GetOutputSize() Size {
+	return f.Size
 }

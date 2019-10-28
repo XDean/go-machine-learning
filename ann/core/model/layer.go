@@ -3,7 +3,7 @@ package model
 type (
 	Layer interface {
 		Init(prev, next Layer)
-		Learn([]Context)
+		Learn(ctxs []Context)
 		NewContext() Context
 		GetOutputSize() Size
 	}

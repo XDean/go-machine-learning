@@ -13,8 +13,6 @@ func init() {
 type (
 	PoolingType int
 	Pooling     struct {
-		BaseLayer
-
 		Type    PoolingType
 		Size    int // F
 		Stride  int // S
@@ -24,7 +22,10 @@ type (
 		// W2 = (W1 + 2P - F) / S + 1
 		// H2 = (H1 + 2P - F) / S + 1
 		OutputSize [3]int // D1 * W2 * H2
+	}
 
+	poolingContext struct {
+		layer         *Pooling
 		input         Data
 		output        Data
 		errorToOutput Data     // output
@@ -73,44 +74,52 @@ func NewPooling(config PoolingConfig) *Pooling {
 	}
 }
 
-func (f *Pooling) Init() {
-	inputSize := f.GetPrev().GetOutputSize()
-	if !f.BaseLayer.Init {
-		f.BaseLayer.Init = true
-		f.InputSize = inputSize
-		f.OutputSize = [3]int{
-			f.InputSize[0],
-			(f.InputSize[1]+2*f.Padding-f.Size)/f.Stride + 1,
-			(f.InputSize[2]+2*f.Padding-f.Size)/f.Stride + 1,
-		}
-	}
-	f.output = NewData(f.OutputSize)
-	f.errorToOutput = NewData(f.OutputSize)
-	f.outputToInput = make([][]Data, f.Size)
-	for i := range f.outputToInput {
-		f.outputToInput[i] = make([]Data, f.Size)
-		for j := range f.outputToInput[i] {
-			f.outputToInput[i][j] = NewData(f.OutputSize)
-		}
+func (f *Pooling) Init(prev, next Layer) {
+	inputSize := prev.GetOutputSize()
+	f.InputSize = inputSize
+	f.OutputSize = [3]int{
+		f.InputSize[0],
+		(f.InputSize[1]+2*f.Padding-f.Size)/f.Stride + 1,
+		(f.InputSize[2]+2*f.Padding-f.Size)/f.Stride + 1,
 	}
 }
 
-func (f *Pooling) Forward() {
-	f.input = f.GetPrev().GetOutput()
+func (f *Pooling) Learn(ctxs []Context) {
+	// do nothing
+}
+
+func (f *Pooling) NewContext() Context {
+	outputToInput := make([][]Data, f.Size)
+	for i := range outputToInput {
+		outputToInput[i] = make([]Data, f.Size)
+		for j := range outputToInput[i] {
+			outputToInput[i][j] = NewData(f.OutputSize)
+		}
+	}
+	return &poolingContext{
+		layer:         f,
+		output:        NewData(f.OutputSize),
+		errorToOutput: NewData(f.OutputSize),
+		outputToInput: outputToInput,
+	}
+}
+
+func (f *poolingContext) Forward(prev Context) {
+	f.input = prev.GetOutput()
 	f.output.MapIndex(func(dep, x, y int, _ float64) float64 {
 		maxIndex := [2]int{0, 0}
 		maxValue := -math.MaxFloat64
 		sum := 0.0
-		for i := 0; i < f.Size; i++ {
-			for j := 0; j < f.Size; j++ {
-				inputX := x + i - f.Padding
-				inputY := y + j - f.Padding
-				isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
+		for i := 0; i < f.layer.Size; i++ {
+			for j := 0; j < f.layer.Size; j++ {
+				inputX := x + i - f.layer.Padding
+				inputY := y + j - f.layer.Padding
+				isPadding := inputX < 0 || inputX >= f.layer.InputSize[0] || inputY < 0 || inputY >= f.layer.InputSize[1]
 				inputValue := 0.0
 				if !isPadding {
 					inputValue = f.input.Value[dep][inputX][inputY]
 				}
-				switch f.Type {
+				switch f.layer.Type {
 				case POOL_MAX:
 					if inputValue > maxValue {
 						f.outputToInput[maxIndex[0]][maxIndex[1]].Value[dep][x][y] = 0
@@ -128,11 +137,11 @@ func (f *Pooling) Forward() {
 				}
 			}
 		}
-		switch f.Type {
+		switch f.layer.Type {
 		case POOL_MAX:
 			return maxValue
 		case POOL_AVG:
-			return sum / float64(f.Size*f.Size)
+			return sum / float64(f.layer.Size*f.layer.Size)
 		case POOL_SUM:
 			return sum
 		default:
@@ -141,35 +150,27 @@ func (f *Pooling) Forward() {
 	})
 }
 
-func (f *Pooling) Backward() {
-	f.errorToOutput = f.GetNext().GetErrorToInput()
+func (f *poolingContext) Backward(next Context) {
+	f.errorToOutput = next.GetErrorToInput()
 }
 
-func (f *Pooling) Learn() {
-	// do nothing
-}
-
-func (f *Pooling) GetInput() Data {
-	return f.input
-}
-
-func (f *Pooling) GetOutput() Data {
+func (f *poolingContext) GetOutput() Data {
 	return f.output
 }
 
-func (f *Pooling) GetErrorToInput() Data {
-	result := NewData(f.InputSize)
-	avg := 1.0 / float64(f.Size*f.Size)
+func (f *poolingContext) GetErrorToInput() Data {
+	result := NewData(f.layer.InputSize)
+	avg := 1.0 / float64(f.layer.Size*f.layer.Size)
 	f.errorToOutput.ForEachIndex(func(dep, x, y int, value float64) {
-		for i := 0; i < f.Size; i++ {
-			for j := 0; j < f.Size; j++ {
-				inputX := x + i - f.Padding
-				inputY := y + j - f.Padding
-				isPadding := inputX < 0 || inputX >= f.InputSize[0] || inputY < 0 || inputY >= f.InputSize[1]
+		for i := 0; i < f.layer.Size; i++ {
+			for j := 0; j < f.layer.Size; j++ {
+				inputX := x + i - f.layer.Padding
+				inputY := y + j - f.layer.Padding
+				isPadding := inputX < 0 || inputX >= f.layer.InputSize[0] || inputY < 0 || inputY >= f.layer.InputSize[1]
 				if isPadding {
 					continue
 				}
-				switch f.Type {
+				switch f.layer.Type {
 				case POOL_MAX:
 					result.Value[dep][inputX][inputY] += value * f.outputToInput[i][j].Value[dep][x][y]
 				case POOL_AVG:

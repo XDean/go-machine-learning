@@ -5,8 +5,6 @@ import (
 )
 
 type EndLayer struct {
-	BaseLayer
-
 	ErrorFunc LossFunc
 	Target    Data
 
@@ -19,29 +17,25 @@ func NewEndLayer(errorFunc LossFunc, target Data) *EndLayer {
 	return &EndLayer{ErrorFunc: errorFunc, Target: target}
 }
 
-func (e *EndLayer) Name() string {
-	return "End Layer"
-}
-
-func (e *EndLayer) Init() {
+func (e *EndLayer) Init(prev, next Layer) {
 	// do nothing
 }
 
-func (e *EndLayer) Forward() {
-	e.Input = e.prev.GetOutput()
+func (e *EndLayer) Forward(prev Context) {
+	e.Input = prev.GetOutput()
 	e.TotalError, e.ErrorToInput = e.ErrorFunc.CalcLoss(e.Target, e.Input)
 }
 
-func (e *EndLayer) Backward() {
+func (e *EndLayer) Backward(next Context) {
 	// do nothing
 }
 
-func (e *EndLayer) Learn() {
+func (e *EndLayer) Learn(ctxs []Context) {
 	// do nothing
 }
 
-func (e *EndLayer) GetInput() Data {
-	return e.Input
+func (e *EndLayer) NewContext() Context {
+	return e
 }
 
 func (e *EndLayer) GetOutput() Data {
@@ -63,8 +57,4 @@ func (e *EndLayer) ToResult(start time.Time) Result {
 		TotalError: e.TotalError,
 		Time:       time.Since(start),
 	}
-}
-
-func (e *EndLayer) SetNext(l Layer) {
-	panic("last layer must have no next")
 }

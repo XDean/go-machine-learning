@@ -1,28 +1,33 @@
 package model
 
-type StartLayer struct {
-	BaseLayer
-	Input Data
-}
+type (
+	StartLayer struct {
+		Input Data
+	}
+)
 
 func NewStartLayer(input Data) *StartLayer {
 	return &StartLayer{Input: input}
 }
 
-func (s *StartLayer) Init() {
-	// do nothing
+func (s *StartLayer) Init(prev, next Layer) {
+	//do nothing
 }
 
-func (s *StartLayer) Forward() {
-	// do nothing
+func (s *StartLayer) Learn(ctxs []Context) {
+	//do nothing
 }
 
-func (s *StartLayer) Backward() {
-	// do nothing
+func (s *StartLayer) Forward(prev Context) {
+	//do nothing
 }
 
-func (s *StartLayer) Learn() {
-	// do nothing
+func (s *StartLayer) Backward(next Context) {
+	//do nothing
+}
+
+func (s *StartLayer) NewContext() Context {
+	return s
 }
 
 func (s *StartLayer) GetOutput() Data {
@@ -35,8 +40,4 @@ func (s *StartLayer) GetErrorToInput() Data {
 
 func (s *StartLayer) GetOutputSize() Size {
 	return s.Input.Size
-}
-
-func (s *StartLayer) SetPrev(l Layer) {
-	panic("start layer must has no prev")
 }
