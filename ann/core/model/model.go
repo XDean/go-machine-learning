@@ -53,14 +53,6 @@ func (m *Model) Init() {
 	}
 }
 
-func (m *Model) FeedTimes(input, target Data, times int) []Result {
-	result := make([]Result, times)
-	for i := range result {
-		result[i] = m.Feed(input, target)
-	}
-	return result
-}
-
 func (m *Model) Feed(input, target Data) Result {
 	startTime := time.Now()
 

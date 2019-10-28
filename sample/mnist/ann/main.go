@@ -57,12 +57,6 @@ func main() {
 					Usage:       "Path to save model. If empty, save to load path.",
 					Destination: &ctx.savePath,
 				},
-				cli.IntFlag{
-					Name:        "repeat",
-					Usage:       "Repeat each train data `n` times. If not positive, train until correct.",
-					Destination: &ctx.repeat,
-					Value:       1,
-				},
 				loadFlag,
 				dataFlag,
 				limitFlag,
