@@ -1,6 +1,6 @@
 package activation
 
-import "github.com/XDean/go-machine-learning/ann/core/persistent"
+import "github.com/XDean/go-machine-learning/ann/persistent"
 
 func init() {
 	persistent.Register(ReLU{})

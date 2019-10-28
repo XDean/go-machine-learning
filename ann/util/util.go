@@ -18,13 +18,3 @@ func NoError(err error) {
 		panic(noerr{err})
 	}
 }
-
-func MustTrue(b bool, msg ...string) {
-	if !b {
-		if len(msg) > 0 {
-			panic(msg[0])
-		} else {
-			panic("Never happen")
-		}
-	}
-}

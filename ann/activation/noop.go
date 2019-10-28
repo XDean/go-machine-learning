@@ -1,7 +1,7 @@
 package activation
 
 import (
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 func init() {

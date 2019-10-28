@@ -3,7 +3,7 @@ package mnist
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/core/util"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"io"
 	"math"
 	"os"

@@ -1,8 +1,8 @@
 package loss
 
 import (
-	. "github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	"github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 )
 
 func init() {
@@ -11,8 +11,8 @@ func init() {
 
 type Square struct{}
 
-func (s Square) CalcLoss(target, actual Data) (error float64, partial Data) {
-	partial = NewData(actual.Size)
+func (s Square) CalcLoss(target, actual core.Data) (error float64, partial core.Data) {
+	partial = core.NewData(actual.Size)
 
 	target.ForEachIndex(func(i, j, k int, t float64) {
 		a := actual.Value[i][j][k]

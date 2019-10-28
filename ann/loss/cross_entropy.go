@@ -1,8 +1,8 @@
 package loss
 
 import (
-	"github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	core2 "github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math"
 )
 
@@ -13,8 +13,8 @@ func init() {
 type CrossEntropy struct {
 }
 
-func (c CrossEntropy) CalcLoss(target, actual model.Data) (error float64, partial model.Data) {
-	partial = model.NewData(actual.Size)
+func (c CrossEntropy) CalcLoss(target, actual core2.Data) (error float64, partial core2.Data) {
+	partial = core2.NewData(actual.Size)
 	count := float64(target.Size.GetCount())
 	actual.ForEachIndex(func(i, j, k int, a float64) {
 		y := target.Value[i][j][k]

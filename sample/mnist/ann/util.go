@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/XDean/go-machine-learning/ann/core/model"
+	core2 "github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/sample/mnist"
 )
 
-func mnistToData(d mnist.Data) (input, target model.Data) {
-	input = model.NewData([3]int{1, 28, 28})
-	target = model.NewData([3]int{1, 1, 10})
+func mnistToData(d mnist.Data) (input, target core2.Data) {
+	input = core2.NewData([3]int{1, 28, 28})
+	target = core2.NewData([3]int{1, 1, 10})
 
 	for i := 0; i < 28; i++ {
 		for j := 0; j < 28; j++ {
@@ -18,7 +18,7 @@ func mnistToData(d mnist.Data) (input, target model.Data) {
 	return
 }
 
-func expectFromResult(r model.Result) int {
+func expectFromResult(r core2.Result) int {
 	max := 0
 	for i, v := range r.Target.Value[0][0] {
 		if v > r.Target.Value[0][0][max] {
@@ -28,7 +28,7 @@ func expectFromResult(r model.Result) int {
 	return max
 }
 
-func predictFromResult(r model.Result) int {
+func predictFromResult(r core2.Result) int {
 	max := 0
 	for i, v := range r.Output.Value[0][0] {
 		if v > r.Output.Value[0][0][max] {
@@ -38,8 +38,8 @@ func predictFromResult(r model.Result) int {
 	return max
 }
 
-func adapt(mnistStream <-chan mnist.Data) <-chan model.TrainData {
-	result := make(chan model.TrainData, 10)
+func adapt(mnistStream <-chan mnist.Data) <-chan core2.TrainData {
+	result := make(chan core2.TrainData, 10)
 	go func() {
 		for {
 			data, ok := <-mnistStream
@@ -47,7 +47,7 @@ func adapt(mnistStream <-chan mnist.Data) <-chan model.TrainData {
 				break
 			}
 			input, target := mnistToData(data)
-			result <- model.TrainData{Input: input, Target: target}
+			result <- core2.TrainData{Input: input, Target: target}
 		}
 		close(result)
 	}()

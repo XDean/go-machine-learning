@@ -1,10 +1,10 @@
 package layer
 
 import (
-	"github.com/XDean/go-machine-learning/ann/classic/activation"
-	"github.com/XDean/go-machine-learning/ann/classic/weight"
-	. "github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	"github.com/XDean/go-machine-learning/ann/activation"
+	"github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
+	"github.com/XDean/go-machine-learning/ann/weight"
 )
 
 func init() {
@@ -18,18 +18,18 @@ type (
 		LearningRatio float64
 		WeightInit    weight.Init
 
-		InputSize Size
-		Weight    []Data //  a * i
+		InputSize core.Size
+		Weight    []core.Data //  a * i
 		Bias      float64
 	}
 
 	fullConnectContext struct {
 		layer          *FullConnect
-		output         Data      // a
-		errorToOutput  Data      // a, ∂E / ∂a
-		outputToInput  []Data    // a * i, ∂a / ∂i
-		outputToWeight []Data    // a * i, ∂a / ∂w
-		outputToNet    []float64 // a
+		output         core.Data   // a
+		errorToOutput  core.Data   // a, ∂E / ∂a
+		outputToInput  []core.Data // a * i, ∂a / ∂i
+		outputToWeight []core.Data // a * i, ∂a / ∂w
+		outputToNet    []float64   // a
 	}
 
 	FullConnectConfig struct {
@@ -69,7 +69,7 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 	}
 }
 
-func (f *FullConnect) Init(prev, next Layer) {
+func (f *FullConnect) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()
 	f.InputSize = inputSize
 	f.Weight = f.newOutputToInputArray(inputSize)
@@ -79,7 +79,7 @@ func (f *FullConnect) Init(prev, next Layer) {
 	f.Bias = f.WeightInit.InitOne()
 }
 
-func (f *FullConnect) Learn(ctxs []Context) {
+func (f *FullConnect) Learn(ctxs []core.Context) {
 	size := float64(len(ctxs))
 	for _, v := range ctxs {
 		ctx := v.(*fullConnectContext)
@@ -101,37 +101,37 @@ func (f *FullConnect) Learn(ctxs []Context) {
 	}
 }
 
-func (f *FullConnect) NewContext() Context {
+func (f *FullConnect) NewContext() core.Context {
 	return &fullConnectContext{
 		layer:          f,
-		output:         NewData([3]int{1, 1, f.Size}),
+		output:         core.NewData([3]int{1, 1, f.Size}),
 		outputToInput:  f.newOutputToInputArray(f.InputSize),
 		outputToWeight: f.newOutputToInputArray(f.InputSize),
 		outputToNet:    make([]float64, f.Size),
 	}
 }
 
-func (f *FullConnect) newOutputToInputArray(inputSize Size) []Data {
-	result := make([]Data, f.Size)
+func (f *FullConnect) newOutputToInputArray(inputSize core.Size) []core.Data {
+	result := make([]core.Data, f.Size)
 	for i := range result {
-		result[i] = NewData(inputSize)
+		result[i] = core.NewData(inputSize)
 	}
 	return result
 }
 
-func (f *FullConnect) GetOutputSize() Size {
-	return Size{1, 1, f.Size}
+func (f *FullConnect) GetOutputSize() core.Size {
+	return core.Size{1, 1, f.Size}
 }
 
-func (f *fullConnectContext) Forward(prev Context) {
+func (f *fullConnectContext) Forward(prev core.Context) {
 	input := prev.GetOutput()
 	for outputIndex := 0; outputIndex < f.layer.Size; outputIndex++ {
 		net := f.layer.Bias
 		for i := range input.Value {
 			for j := range input.Value[i] {
 				for k, inputValue := range input.Value[i][j] {
-					weight := f.layer.Weight[outputIndex].Value[i][j][k]
-					net += weight * inputValue
+					w := f.layer.Weight[outputIndex].Value[i][j][k]
+					net += w * inputValue
 				}
 			}
 		}
@@ -139,8 +139,8 @@ func (f *fullConnectContext) Forward(prev Context) {
 		for i := range input.Value {
 			for j := range input.Value[i] {
 				for k, inputValue := range input.Value[i][j] {
-					weight := f.layer.Weight[outputIndex].Value[i][j][k]
-					f.outputToInput[outputIndex].Value[i][j][k] = weight * partial
+					w := f.layer.Weight[outputIndex].Value[i][j][k]
+					f.outputToInput[outputIndex].Value[i][j][k] = w * partial
 					f.outputToWeight[outputIndex].Value[i][j][k] = inputValue * partial
 					f.outputToNet[outputIndex] = partial
 				}
@@ -150,16 +150,16 @@ func (f *fullConnectContext) Forward(prev Context) {
 	}
 }
 
-func (f *fullConnectContext) Backward(next Context) {
+func (f *fullConnectContext) Backward(next core.Context) {
 	f.errorToOutput = next.GetErrorToInput()
 }
 
-func (f *fullConnectContext) GetOutput() Data {
+func (f *fullConnectContext) GetOutput() core.Data {
 	return f.output
 }
 
-func (f *fullConnectContext) GetErrorToInput() Data {
-	result := NewData(f.layer.InputSize)
+func (f *fullConnectContext) GetErrorToInput() core.Data {
+	result := core.NewData(f.layer.InputSize)
 	for i := range result.Value {
 		for j := range result.Value[i] {
 			for k := range result.Value[i][j] {

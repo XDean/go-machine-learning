@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/ann/core/util"
+	core2 "github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/util"
 	"github.com/XDean/go-machine-learning/sample/mnist"
 	"path/filepath"
 	"time"
@@ -90,7 +90,7 @@ func (c Context) checkData() error {
 	return nil
 }
 
-func (c Context) loadModel() (result *model.Model, err error) {
+func (c Context) loadModel() (result *core2.Model, err error) {
 	if c.modelN > 0 && c.modelN <= len(models) {
 		result = models[c.modelN-1]
 		result.Init()
@@ -98,7 +98,7 @@ func (c Context) loadModel() (result *model.Model, err error) {
 	}
 	if c.loadPath != "" {
 		fmt.Printf("Load model from %s\n", c.loadPath)
-		result = new(model.Model)
+		result = new(core2.Model)
 		err = result.LoadFromFile(c.loadPath)
 	}
 	if result == nil {
@@ -107,7 +107,7 @@ func (c Context) loadModel() (result *model.Model, err error) {
 	return
 }
 
-func (c Context) saveModel(m *model.Model) (err error) {
+func (c Context) saveModel(m *core2.Model) (err error) {
 	if c.loadPath == "" {
 		c.loadPath = c.savePath
 	}

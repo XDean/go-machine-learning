@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/XDean/go-machine-learning/ann/core/model"
+	core2 "github.com/XDean/go-machine-learning/ann/core"
 	"github.com/urfave/cli"
 	"log"
 	"math/rand"
@@ -98,8 +98,8 @@ func main() {
 	}
 }
 
-var models = make([]*model.Model, 0)
+var models = make([]*core2.Model, 0)
 
-func RegisterModel(m *model.Model) {
+func RegisterModel(m *core2.Model) {
 	models = append(models, m)
 }

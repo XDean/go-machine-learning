@@ -1,8 +1,8 @@
 package layer
 
 import (
-	. "github.com/XDean/go-machine-learning/ann/core/model"
-	"github.com/XDean/go-machine-learning/ann/core/persistent"
+	"github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math"
 )
 
@@ -26,11 +26,11 @@ type (
 
 	poolingContext struct {
 		layer         *Pooling
-		input         Data
-		output        Data
-		errorToOutput Data     // output
-		errorToInput  Data     // input
-		outputToInput [][]Data // F * F * output
+		input         core.Data
+		output        core.Data
+		errorToOutput core.Data     // output
+		errorToInput  core.Data     // input
+		outputToInput [][]core.Data // F * F * output
 	}
 
 	PoolingConfig struct {
@@ -74,7 +74,7 @@ func NewPooling(config PoolingConfig) *Pooling {
 	}
 }
 
-func (f *Pooling) Init(prev, next Layer) {
+func (f *Pooling) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()
 	f.InputSize = inputSize
 	f.OutputSize = [3]int{
@@ -84,27 +84,27 @@ func (f *Pooling) Init(prev, next Layer) {
 	}
 }
 
-func (f *Pooling) Learn(ctxs []Context) {
+func (f *Pooling) Learn(ctxs []core.Context) {
 	// do nothing
 }
 
-func (f *Pooling) NewContext() Context {
-	outputToInput := make([][]Data, f.Size)
+func (f *Pooling) NewContext() core.Context {
+	outputToInput := make([][]core.Data, f.Size)
 	for i := range outputToInput {
-		outputToInput[i] = make([]Data, f.Size)
+		outputToInput[i] = make([]core.Data, f.Size)
 		for j := range outputToInput[i] {
-			outputToInput[i][j] = NewData(f.OutputSize)
+			outputToInput[i][j] = core.NewData(f.OutputSize)
 		}
 	}
 	return &poolingContext{
 		layer:         f,
-		output:        NewData(f.OutputSize),
-		errorToOutput: NewData(f.OutputSize),
+		output:        core.NewData(f.OutputSize),
+		errorToOutput: core.NewData(f.OutputSize),
 		outputToInput: outputToInput,
 	}
 }
 
-func (f *poolingContext) Forward(prev Context) {
+func (f *poolingContext) Forward(prev core.Context) {
 	f.input = prev.GetOutput()
 	f.output.MapIndex(func(dep, x, y int, _ float64) float64 {
 		maxIndex := [2]int{0, 0}
@@ -150,16 +150,16 @@ func (f *poolingContext) Forward(prev Context) {
 	})
 }
 
-func (f *poolingContext) Backward(next Context) {
+func (f *poolingContext) Backward(next core.Context) {
 	f.errorToOutput = next.GetErrorToInput()
 }
 
-func (f *poolingContext) GetOutput() Data {
+func (f *poolingContext) GetOutput() core.Data {
 	return f.output
 }
 
-func (f *poolingContext) GetErrorToInput() Data {
-	result := NewData(f.layer.InputSize)
+func (f *poolingContext) GetErrorToInput() core.Data {
+	result := core.NewData(f.layer.InputSize)
 	avg := 1.0 / float64(f.layer.Size*f.layer.Size)
 	f.errorToOutput.ForEachIndex(func(dep, x, y int, value float64) {
 		for i := 0; i < f.layer.Size; i++ {
@@ -184,6 +184,6 @@ func (f *poolingContext) GetErrorToInput() Data {
 	return result
 }
 
-func (f *Pooling) GetOutputSize() Size {
+func (f *Pooling) GetOutputSize() core.Size {
 	return f.OutputSize
 }
