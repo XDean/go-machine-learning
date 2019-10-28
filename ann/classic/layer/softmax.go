@@ -31,7 +31,7 @@ func (f *SoftMax) Init(prev, next Layer) {
 }
 
 func (f *SoftMax) Learn(ctxs []Context) {
-	panic("implement me")
+	// do nothing
 }
 
 func (f *SoftMax) NewContext() Context {

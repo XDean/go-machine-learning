@@ -27,7 +27,7 @@ func init() {
 	// 95.08%
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
-	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
+	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.1}
 	RegisterModel(&model.Model{
 		Name:      "DNN - ReLU - SoftMax - CrossEntropy - (28 * 28) * 200 * 40 * 10",
 		ErrorFunc: loss.CrossEntropy{},

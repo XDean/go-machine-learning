@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type (
@@ -55,29 +56,65 @@ func (m *Model) Init() {
 	}
 }
 
+func (m *Model) FeedBatch(dataStream <-chan TrainData, batchSize int) <-chan Result {
+	result := make(chan Result, batchSize)
+	go func() {
+		batch := make([]*modelContext, batchSize)
+		done := sync.WaitGroup{}
+		for {
+			for i := range batch {
+				data, ok := <-dataStream
+				if !ok {
+					batch = batch[:i]
+					break
+				}
+				done.Add(1)
+				c := &modelContext{
+					model: m,
+					start: m.newStart(data.Input),
+					end:   m.newEnd(data.Target),
+				}
+				batch[i] = c
+				go func() {
+					c.init()
+					c.forward()
+					c.backward()
+					result <- c.end.ToResult()
+					done.Done()
+				}()
+			}
+			done.Wait()
+			m.learn(batch)
+			if len(batch) != batchSize {
+				break
+			}
+		}
+		close(result)
+	}()
+	return result
+}
+
 func (m *Model) Feed(input, target Data) Result {
-	c := modelContext{
-		model:    m,
-		start:    m.newStart(input),
-		end:      m.newEnd(target),
-		contexts: make([]Context, len(m.Layers)),
+	c := &modelContext{
+		model: m,
+		start: m.newStart(input),
+		end:   m.newEnd(target),
 	}
-	c.Init()
+	c.init()
 	c.forward()
 	c.backward()
-	c.learn()
+	m.learn([]*modelContext{c})
 
 	return c.end.ToResult()
 }
 
 func (m *Model) Test(input, target Data) Result {
 	c := modelContext{
-		model:    m,
-		start:    m.newStart(input),
-		end:      m.newEnd(target),
-		contexts: make([]Context, len(m.Layers)),
+		model: m,
+		start: m.newStart(input),
+		end:   m.newEnd(target),
 	}
-	c.Init()
+	c.init()
 	c.forward()
 
 	return c.end.ToResult()
@@ -85,12 +122,11 @@ func (m *Model) Test(input, target Data) Result {
 
 func (m *Model) Predict(input Data) Data {
 	c := modelContext{
-		model:    m,
-		start:    m.newStart(input),
-		end:      m.newEnd(EMPTY_DATA),
-		contexts: make([]Context, len(m.Layers)),
+		model: m,
+		start: m.newStart(input),
+		end:   m.newEnd(EMPTY_DATA),
 	}
-	c.Init()
+	c.init()
 	c.forward()
 	return c.lastContext().GetOutput()
 }
@@ -128,7 +164,8 @@ func (m *Model) Load(reader io.Reader) (err error) {
 }
 
 // Private
-func (c *modelContext) Init() {
+func (c *modelContext) init() {
+	c.contexts = make([]Context, len(c.model.Layers))
 	for i := range c.contexts {
 		c.contexts[i] = c.model.Layers[i].NewContext()
 	}
@@ -160,10 +197,13 @@ func (c *modelContext) backward() {
 	c.start.Backward(nil)
 }
 
-func (c *modelContext) learn() {
-	for i := len(c.model.Layers) - 1; i >= 0; i-- {
-		layer := c.model.Layers[i]
-		layer.Learn(c.contexts[i : i+1])
+func (m *Model) learn(ctxs []*modelContext) {
+	for i := len(m.Layers) - 1; i >= 0; i-- {
+		contexts := make([]Context, len(ctxs))
+		for j, c := range ctxs {
+			contexts[j] = c.contexts[i]
+		}
+		m.Layers[i].Learn(contexts)
 	}
 }
 

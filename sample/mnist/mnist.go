@@ -13,7 +13,7 @@ func Load(imageFile, labelFile string, limit int) <-chan Data {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
-	result := make(chan Data)
+	result := make(chan Data, 10)
 	go func() {
 		defer close(result)
 		images, err := os.Open(imageFile)

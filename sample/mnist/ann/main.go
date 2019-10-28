@@ -57,6 +57,12 @@ func main() {
 					Usage:       "Path to save model. If empty, save to load path.",
 					Destination: &ctx.savePath,
 				},
+				cli.IntFlag{
+					Name:        "batch",
+					Usage:       "Batch size, default 1",
+					Destination: &ctx.batch,
+					Value:       1,
+				},
 				loadFlag,
 				dataFlag,
 				limitFlag,

@@ -16,6 +16,7 @@ type Context struct {
 	dataPath string
 	limit    int
 	modelN   int
+	batch    int
 }
 
 func (c Context) Show() error {
@@ -32,21 +33,22 @@ func (c Context) Train() (err error) {
 	m, err := c.loadModel()
 	util.NoError(err)
 
-	datas := mnist.Load(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)
+	resultStream := m.FeedBatch(
+		adapt(mnist.Load(filepath.Join(c.dataPath, train_image), filepath.Join(c.dataPath, train_label), c.limit)),
+		c.batch)
 	profile := NewProfile(100)
+	startTime := time.Now()
 	for {
-		data, ok := <-datas
+		result, ok := <-resultStream
 		if !ok {
 			break
 		}
-		input, target := mnistToData(data)
-		startTime := time.Now()
-		result := m.Feed(input, target)
 		used := time.Since(startTime)
+		expect := expectFromResult(result)
 		predict := predictFromResult(result)
-		profile.Add(data.Label == uint8(predict))
-		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
-			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, used/time.Millisecond)
+		profile.Add(expect == predict)
+		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, total time %d ms\n",
+			profile.Total, expect, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, used/time.Millisecond)
 	}
 	return c.saveModel(m)
 }
@@ -91,6 +93,7 @@ func (c Context) checkData() error {
 func (c Context) loadModel() (result *model.Model, err error) {
 	if c.modelN > 0 && c.modelN <= len(models) {
 		result = models[c.modelN-1]
+		result.Init()
 		fmt.Printf("New model: %s\n", result.Name)
 	}
 	if c.loadPath != "" {
@@ -100,8 +103,6 @@ func (c Context) loadModel() (result *model.Model, err error) {
 	}
 	if result == nil {
 		err = errors.New("Model is not specified.")
-	} else {
-		result.Init()
 	}
 	return
 }

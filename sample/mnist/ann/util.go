@@ -18,6 +18,16 @@ func mnistToData(d mnist.Data) (input, target model.Data) {
 	return
 }
 
+func expectFromResult(r model.Result) int {
+	max := 0
+	for i, v := range r.Target.Value[0][0] {
+		if v > r.Target.Value[0][0][max] {
+			max = i
+		}
+	}
+	return max
+}
+
 func predictFromResult(r model.Result) int {
 	max := 0
 	for i, v := range r.Output.Value[0][0] {
@@ -26,4 +36,20 @@ func predictFromResult(r model.Result) int {
 		}
 	}
 	return max
+}
+
+func adapt(mnistStream <-chan mnist.Data) <-chan model.TrainData {
+	result := make(chan model.TrainData, 10)
+	go func() {
+		for {
+			data, ok := <-mnistStream
+			if !ok {
+				break
+			}
+			input, target := mnistToData(data)
+			result <- model.TrainData{Input: input, Target: target}
+		}
+		close(result)
+	}()
+	return result
 }
