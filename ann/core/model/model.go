@@ -17,6 +17,13 @@ type (
 		InputSize [3]int
 	}
 
+	modelContext struct {
+		model    *Model
+		start    *StartLayer
+		end      *EndLayer
+		contexts []Context
+	}
+
 	Result struct {
 		Output     Data
 		Target     Data
@@ -26,7 +33,24 @@ type (
 )
 
 func (m *Model) Init() {
-	m.initLayer()
+	start := m.newStart(NewData(m.InputSize))
+	end := m.newEnd(NewData(m.lastLayer().GetOutputSize()))
+	switch len(m.Layers) {
+	case 0:
+		panic("No layer in model")
+	case 1:
+		m.Layers[0].Init(start, end)
+	default:
+		for i, l := range m.Layers {
+			if i == 0 {
+				l.Init(start, m.Layers[i+1])
+			} else if i == len(m.Layers)-1 {
+				l.Init(m.Layers[i-1], end)
+			} else {
+				l.Init(m.Layers[i-1], m.Layers[i+1])
+			}
+		}
+	}
 }
 
 func (m *Model) FeedTimes(input, target Data, times int) []Result {
@@ -40,42 +64,45 @@ func (m *Model) FeedTimes(input, target Data, times int) []Result {
 func (m *Model) Feed(input, target Data) Result {
 	startTime := time.Now()
 
-	start := m.newStart(input)
-	end := m.newEnd(target)
+	c := modelContext{
+		model:    m,
+		start:    m.newStart(input),
+		end:      m.newEnd(target),
+		contexts: make([]Context, len(m.Layers)),
+	}
+	c.Init()
+	c.forward()
+	c.backward()
+	c.learn()
 
-	start.Forward()
-	m.forward()
-	end.Forward()
-
-	end.Backward()
-	m.backward()
-	start.Backward()
-
-	end.Learn()
-	m.learn()
-	start.Learn()
-
-	return end.ToResult(startTime)
+	return c.end.ToResult(startTime)
 }
 
 func (m *Model) Test(input, target Data) Result {
 	startTime := time.Now()
 
-	start := m.newStart(input)
-	end := m.newEnd(target)
+	c := modelContext{
+		model:    m,
+		start:    m.newStart(input),
+		end:      m.newEnd(target),
+		contexts: make([]Context, len(m.Layers)),
+	}
+	c.Init()
+	c.forward()
 
-	start.Forward()
-	m.forward()
-	end.Forward()
-
-	return end.ToResult(startTime)
+	return c.end.ToResult(startTime)
 }
 
 func (m *Model) Predict(input Data) Data {
-	start := m.newStart(input)
-	start.Forward()
-	m.forward()
-	return m.lastLayer().GetOutput()
+	c := modelContext{
+		model:    m,
+		start:    m.newStart(input),
+		end:      m.newEnd(EMPTY_DATA),
+		contexts: make([]Context, len(m.Layers)),
+	}
+	c.Init()
+	c.forward()
+	return c.lastContext().GetOutput()
 }
 
 // Persistent
@@ -111,68 +138,57 @@ func (m *Model) Load(reader io.Reader) (err error) {
 }
 
 // Private
+func (c *modelContext) Init() {
+	for i := range c.contexts {
+		c.contexts[i] = c.model.Layers[i].NewContext()
+	}
+}
+
+func (c *modelContext) forward() {
+	c.start.Forward(nil)
+	for i, ctx := range c.contexts {
+		if i == 0 {
+			ctx.Forward(c.start)
+		} else {
+			ctx.Forward(c.contexts[i-1])
+		}
+	}
+	c.end.Forward(c.lastContext())
+}
+
+func (c *modelContext) backward() {
+	c.end.Backward(c.contexts[0])
+	layerSize := len(c.contexts)
+	for i := layerSize; i > 0; i-- {
+		ctx := c.contexts[i-1]
+		if i == layerSize {
+			ctx.Backward(c.end)
+		} else {
+			ctx.Backward(c.contexts[i])
+		}
+	}
+	c.start.Backward(nil)
+}
+
+func (c *modelContext) learn() {
+	for i := len(c.model.Layers) - 1; i >= 0; i-- {
+		layer := c.model.Layers[i]
+		layer.Learn(c.contexts[i : i+1])
+	}
+}
+
+func (c *modelContext) lastContext() Context {
+	return c.contexts[len(c.contexts)-1]
+}
+
 func (m *Model) lastLayer() Layer {
 	return m.Layers[len(m.Layers)-1]
 }
 
 func (m *Model) newStart(input Data) *StartLayer {
-	start := NewStartLayer(input)
-	m.Layers[0].SetPrev(start)
-	start.SetNext(m.Layers[0])
-	return start
+	return NewStartLayer(input)
 }
 
 func (m *Model) newEnd(target Data) *EndLayer {
-	end := NewEndLayer(m.ErrorFunc, target)
-	end.SetPrev(m.lastLayer())
-	m.lastLayer().SetNext(end)
-	return end
-}
-
-func (m *Model) forLayer(f func(int, Layer)) {
-	for i, v := range m.Layers {
-		f(i, v)
-	}
-}
-
-func (m *Model) forLayerReverse(f func(int, Layer)) {
-	for i := len(m.Layers); i > 0; i-- {
-		f(i-1, m.Layers[i-1])
-	}
-}
-
-func (m *Model) forward() {
-	m.forLayer(func(i int, layer Layer) {
-		layer.Forward()
-	})
-}
-
-func (m *Model) backward() {
-	m.forLayerReverse(func(i int, layer Layer) {
-		layer.Backward()
-	})
-}
-
-func (m *Model) learn() {
-	m.forLayerReverse(func(i int, layer Layer) {
-		layer.Learn()
-	})
-}
-
-func (m *Model) initLayer() {
-	start := m.newStart(NewData(m.InputSize))
-	end := m.newEnd(NewData(m.lastLayer().GetOutputSize()))
-	for i, l := range m.Layers {
-		if i == 0 {
-			l.SetPrev(start)
-		} else {
-			l.SetPrev(m.Layers[i-1])
-		}
-		if i == len(m.Layers)-1 {
-			l.SetNext(end)
-		} else {
-			l.SetNext(m.Layers[i+1])
-		}
-		l.Init()
-	}
+	return NewEndLayer(m.ErrorFunc, target)
 }
