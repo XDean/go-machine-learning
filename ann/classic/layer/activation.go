@@ -10,56 +10,60 @@ func init() {
 	persistent.Register(new(Activation))
 }
 
-type Activation struct {
-	BaseLayer
+type (
+	Activation struct {
+		Activation activation.Activation
 
-	Activation activation.Activation
+		InputSize Size
+	}
 
-	InputSize Size
-
-	output        Data
-	errorToOutput Data
-	outputToInput Data
-}
+	activationContext struct {
+		layer         *Activation
+		output        Data
+		errorToOutput Data
+		outputToInput Data
+	}
+)
 
 func NewActivation(activation activation.Activation) *Activation {
 	return &Activation{Activation: activation}
 }
 
-func (f *Activation) Init() {
-	inputSize := f.GetPrev().GetOutputSize()
-	if !f.BaseLayer.Init {
-		f.BaseLayer.Init = true
-		f.InputSize = inputSize
-	}
-	f.output = NewData(inputSize)
-	f.errorToOutput = NewData(inputSize)
-	f.outputToInput = NewData(inputSize)
+func (f *Activation) Init(prev, next Layer) {
+	f.InputSize = prev.GetOutputSize()
 }
 
-func (f *Activation) Forward() {
-	input := f.GetPrev().GetOutput()
+func (f *Activation) Learn([]Context) {
+	// do nothing
+}
+
+func (f *Activation) NewContext() Context {
+	return &activationContext{
+		output:        NewData(f.InputSize),
+		errorToOutput: NewData(f.InputSize),
+		outputToInput: NewData(f.InputSize),
+	}
+}
+
+func (f *activationContext) Forward(prev Context) {
+	input := prev.GetOutput()
 	f.output.MapIndex(func(i, j, k int, _ float64) float64 {
-		output, partial := f.Activation.Active(input.Value[i][j][k])
+		output, partial := f.layer.Activation.Active(input.Value[i][j][k])
 		f.outputToInput.Value[i][j][k] = partial
 		return output
 	})
 }
 
-func (f *Activation) Backward() {
-	f.errorToOutput = f.GetNext().GetErrorToInput()
+func (f *activationContext) Backward(next Context) {
+	f.errorToOutput = next.GetErrorToInput()
 }
 
-func (f *Activation) Learn() {
-	// do nothing
-}
-
-func (f *Activation) GetOutput() Data {
+func (f *activationContext) GetOutput() Data {
 	return f.output
 }
 
-func (f *Activation) GetErrorToInput() Data {
-	result := NewData(f.InputSize)
+func (f *activationContext) GetErrorToInput() Data {
+	result := NewData(f.layer.InputSize)
 	result.MapIndex(func(i, j, k int, _ float64) float64 {
 		return f.errorToOutput.Value[i][j][k] * f.outputToInput.Value[i][j][k]
 	})

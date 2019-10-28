@@ -70,12 +70,12 @@ func init() {
 	})
 
 	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
-	layer.ConvolutionDefaultConfig.WeightInit = &weight.NormalInit{Std: 1}
-	layer.ConvolutionDefaultConfig.Activation = activation.Sigmoid{}
+	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
+	layer.ConvolutionDefaultConfig.Activation = activation.Tanh{}
 
 	layer.FullConnectDefaultConfig.LearningRatio = 0.1
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
-	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
+	layer.FullConnectDefaultConfig.Activation = activation.Tanh{}
 
 	RegisterModel(&model.Model{
 		Name:      "CNN - LeNet-5",
@@ -93,17 +93,19 @@ func init() {
 				Stride:  2,
 				Padding: 0,
 			}), // 6 * 14 * 14
+			layer.NewActivation(activation.Sigmoid{}),
 			layer.NewConvolution(layer.ConvolutionConfig{
 				KernelCount: 16,
 				KernelSize:  5,
 				Padding:     0,
 			}), // 16 * 10 * 10
 			layer.NewPooling(layer.PoolingConfig{
-				Type:    layer.POOL_MAX,
+				Type:    layer.POOL_SUM,
 				Size:    2,
 				Stride:  2,
 				Padding: 0,
 			}), // 6 * 5 * 5
+			layer.NewActivation(activation.Sigmoid{}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 120}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 84}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),

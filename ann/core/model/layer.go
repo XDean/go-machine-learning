@@ -2,21 +2,18 @@ package model
 
 type (
 	Layer interface {
-		Init() // after set prev and next
+		Init(prev, next Layer)
+		Learn([]Context)
+		NewContext() Context
+		GetOutputSize() Size
+	}
 
-		Forward()  // call next
-		Backward() // call prev
-		Learn()    // call prev
+	Context interface {
+		Forward(prev Context)
+		Backward(next Context)
 
 		GetOutput() Data       // o
 		GetErrorToInput() Data // ∂E / ∂a
-
-		GetOutputSize() Size
-
-		SetPrev(Layer)
-		SetNext(Layer)
-		GetPrev() Layer
-		GetNext() Layer
 	}
 
 	BaseLayer struct {
