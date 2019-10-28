@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type (
@@ -24,11 +23,14 @@ type (
 		contexts []Context
 	}
 
+	TrainData struct {
+		Input, Target Data
+	}
+
 	Result struct {
 		Output     Data
 		Target     Data
 		TotalError float64
-		Time       time.Duration
 	}
 )
 
@@ -54,8 +56,6 @@ func (m *Model) Init() {
 }
 
 func (m *Model) Feed(input, target Data) Result {
-	startTime := time.Now()
-
 	c := modelContext{
 		model:    m,
 		start:    m.newStart(input),
@@ -67,12 +67,10 @@ func (m *Model) Feed(input, target Data) Result {
 	c.backward()
 	c.learn()
 
-	return c.end.ToResult(startTime)
+	return c.end.ToResult()
 }
 
 func (m *Model) Test(input, target Data) Result {
-	startTime := time.Now()
-
 	c := modelContext{
 		model:    m,
 		start:    m.newStart(input),
@@ -82,7 +80,7 @@ func (m *Model) Test(input, target Data) Result {
 	c.Init()
 	c.forward()
 
-	return c.end.ToResult(startTime)
+	return c.end.ToResult()
 }
 
 func (m *Model) Predict(input Data) Data {

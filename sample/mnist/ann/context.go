@@ -40,11 +40,13 @@ func (c Context) Train() (err error) {
 			break
 		}
 		input, target := mnistToData(data)
+		startTime := time.Now()
 		result := m.Feed(input, target)
+		used := time.Since(startTime)
 		predict := predictFromResult(result)
 		profile.Add(data.Label == uint8(predict))
 		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
-			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, result.Time/time.Millisecond)
+			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, used/time.Millisecond)
 	}
 	return c.saveModel(m)
 }
@@ -64,11 +66,13 @@ func (c Context) Test() (err error) {
 		if !ok {
 			break
 		}
+		startTime := time.Now()
 		result := m.Test(mnistToData(data))
+		used := time.Since(startTime)
 		predict := predictFromResult(result)
 		profile.Add(data.Label == uint8(predict))
 		fmt.Printf("%5d: expect %d, predict %d, error %.4f, correct %.2f%%, recent %.2f%%, time %d ms\n",
-			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, result.Time/time.Millisecond)
+			profile.Total, data.Label, predict, result.TotalError, profile.HitRate()*100, profile.RecentHitRate()*100, used/time.Millisecond)
 		if c.savePath != "" && predict != int(data.Label) {
 			util.NoError(data.SaveToFile(filepath.Join(c.savePath, fmt.Sprintf("%d-%d-%d.png", profile.Total, data.Label, predict))))
 		}

@@ -1,9 +1,5 @@
 package model
 
-import (
-	"time"
-)
-
 type EndLayer struct {
 	ErrorFunc LossFunc
 	Target    Data
@@ -50,11 +46,10 @@ func (e *EndLayer) GetOutputSize() Size {
 	return e.Input.Size
 }
 
-func (e *EndLayer) ToResult(start time.Time) Result {
+func (e *EndLayer) ToResult() Result {
 	return Result{
 		Output:     e.Input,
 		Target:     e.Target,
 		TotalError: e.TotalError,
-		Time:       time.Since(start),
 	}
 }
