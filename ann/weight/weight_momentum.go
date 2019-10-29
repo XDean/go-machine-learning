@@ -1,10 +1,24 @@
 package weight
 
-type Momentum struct {
-	Value    float64
-	Eta      float64
-	Gamma    float64
-	Velocity float64
+type (
+	Momentum struct {
+		Value    float64
+		Eta      float64
+		Gamma    float64
+		Velocity float64
+	}
+	MomentumFactory struct {
+		Eta   float64
+		Gamma float64
+	}
+)
+
+func (f MomentumFactory) Create() Weight {
+	return &Momentum{
+		Value: 0,
+		Eta:   f.Eta,
+		Gamma: f.Gamma,
+	}
 }
 
 func (w *Momentum) Get() float64 {

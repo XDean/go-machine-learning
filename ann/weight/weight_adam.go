@@ -10,7 +10,26 @@ type (
 		V, S, T      float64
 		Epsilon      float64
 	}
+
+	AdamFactory struct {
+		Beta1, Beta2 float64
+		Epsilon      float64
+	}
 )
+
+const (
+	AdamDefaultBeta1   = 0.9
+	AdamDefaultBeta2   = 0.999
+	AdamDefaultEpsilon = 10e-8
+)
+
+func (f AdamFactory) Create() Weight {
+	return &Adam{
+		Beta1:   f.Beta1,
+		Beta2:   f.Beta2,
+		Epsilon: f.Epsilon,
+	}
+}
 
 func (w *Adam) Get() float64 {
 	return w.Value

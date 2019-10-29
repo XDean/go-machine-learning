@@ -1,7 +1,6 @@
 package weight
 
 import (
-	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math/rand"
 )
@@ -15,17 +14,13 @@ type RandomInit struct {
 	Range        float64
 }
 
-func (r *RandomInit) InitOne() float64 {
-	v := rand.Float64()
-	if !r.PositiveOnly {
-		v = (v - 0.5) * 2
+func (r *RandomInit) Generate(count int) func() float64 {
+	return func() float64 {
+		v := rand.Float64()
+		if !r.PositiveOnly {
+			v = (v - 0.5) * 2
+		}
+		v *= r.Range
+		return v
 	}
-	v *= r.Range
-	return v
-}
-
-func (r *RandomInit) InitData(data core.Data) {
-	data.Map(func(_ float64) float64 {
-		return r.InitOne()
-	})
 }

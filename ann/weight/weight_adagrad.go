@@ -9,7 +9,22 @@ type (
 		Epsilon float64
 		Sum     float64
 	}
+	AdaGradFactory struct {
+		Eta     float64
+		Epsilon float64
+	}
 )
+
+const (
+	AdaGradDefaultEpsilon = 10e-6
+)
+
+func (f AdaGradFactory) Create() Weight {
+	return &AdaGrad{
+		Eta:     f.Eta,
+		Epsilon: f.Epsilon,
+	}
+}
 
 func (w *AdaGrad) Get() float64 {
 	return w.Value
