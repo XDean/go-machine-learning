@@ -15,12 +15,12 @@ type (
 	FullConnect struct {
 		Size          int
 		Activation    activation.Activation
-		LearningRatio float64
 		WeightInit    weight.Init
+		WeightFactory weight.Factory
 
 		InputSize core.Size
-		Weight    []core.Data //  a * i
-		Bias      float64
+		Weight    [][][][]weight.Weight //  a * i
+		Bias      weight.Weight
 	}
 
 	fullConnectContext struct {
@@ -35,16 +35,16 @@ type (
 	FullConnectConfig struct {
 		Size          int
 		Activation    activation.Activation
-		LearningRatio float64
 		WeightInit    weight.Init
+		WeightFactory weight.Factory
 	}
 )
 
 var (
 	FullConnectDefaultConfig = FullConnectConfig{
 		Activation:    activation.Sigmoid{},
-		LearningRatio: 0.1,
 		WeightInit:    &weight.RandomInit{Range: 1},
+		WeightFactory: weight.SGDFactory{Eta: 0.1},
 	}
 )
 
@@ -55,8 +55,8 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 	if config.Activation == nil {
 		config.Activation = FullConnectDefaultConfig.Activation
 	}
-	if config.LearningRatio == 0 {
-		config.LearningRatio = FullConnectDefaultConfig.LearningRatio
+	if config.WeightFactory == nil {
+		config.WeightFactory = FullConnectDefaultConfig.WeightFactory
 	}
 	if config.WeightInit == nil {
 		config.WeightInit = FullConnectDefaultConfig.WeightInit
@@ -64,41 +64,45 @@ func NewFullConnect(config FullConnectConfig) *FullConnect {
 	return &FullConnect{
 		Size:          config.Size,
 		Activation:    config.Activation,
-		LearningRatio: config.LearningRatio,
 		WeightInit:    config.WeightInit,
+		WeightFactory: config.WeightFactory,
 	}
 }
 
 func (f *FullConnect) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()
 	f.InputSize = inputSize
-	f.Weight = f.newOutputToInputArray(inputSize)
-	for _, v := range f.Weight {
-		f.WeightInit.InitData(v)
+	f.Weight = make([][][][]weight.Weight, f.Size)
+	for i := range f.Weight {
+		f.Weight[i] = weight.Create3D(f.WeightFactory, f.WeightInit, inputSize)
 	}
-	f.Bias = f.WeightInit.InitOne()
+	f.Bias = weight.Create(f.WeightFactory, f.WeightInit)
 }
 
 func (f *FullConnect) Learn(ctxs []core.Context) {
 	size := float64(len(ctxs))
-	for _, v := range ctxs {
-		ctx := v.(*fullConnectContext)
-		for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
-			for i := range f.Weight[outputIndex].Value {
-				for j := range f.Weight[outputIndex].Value[i] {
-					for k := range f.Weight[outputIndex].Value[i][j] {
-						f.Weight[outputIndex].Value[i][j][k] -=
-							f.LearningRatio * ctx.errorToOutput.Value[0][0][outputIndex] * ctx.outputToWeight[outputIndex].Value[i][j][k] / size
+	for outputIndex := 0; outputIndex < f.Size; outputIndex++ {
+		for i := range f.Weight[outputIndex] {
+			for j := range f.Weight[outputIndex][i] {
+				for k := range f.Weight[outputIndex][i][j] {
+					gradient := 0.0
+					for _, v := range ctxs {
+						ctx := v.(*fullConnectContext)
+						gradient += ctx.errorToOutput.Value[0][0][outputIndex] * ctx.outputToWeight[outputIndex].Value[i][j][k] / size
 					}
+					f.Weight[outputIndex][i][j][k].Learn(gradient)
 				}
 			}
 		}
-		biasPartial := 0.0 // ∂E / ∂b
-		for outputIndex, v := range ctx.outputToNet {
-			biasPartial += ctx.errorToOutput.Value[0][0][outputIndex] * v
-		}
-		f.Bias -= f.LearningRatio * biasPartial / size
 	}
+	biasGradient := 0.0 // ∂E / ∂b
+	for _, v := range ctxs {
+		ctx := v.(*fullConnectContext)
+		for outputIndex, v := range ctx.outputToNet {
+			biasGradient += ctx.errorToOutput.Value[0][0][outputIndex] * v / size
+		}
+	}
+	f.Bias.Learn(biasGradient)
 }
 
 func (f *FullConnect) NewContext() core.Context {
@@ -126,12 +130,12 @@ func (f *FullConnect) GetOutputSize() core.Size {
 func (f *fullConnectContext) Forward(prev core.Context) {
 	input := prev.GetOutput()
 	for outputIndex := 0; outputIndex < f.layer.Size; outputIndex++ {
-		net := f.layer.Bias
+		net := f.layer.Bias.Get()
 		for i := range input.Value {
 			for j := range input.Value[i] {
 				for k, inputValue := range input.Value[i][j] {
-					w := f.layer.Weight[outputIndex].Value[i][j][k]
-					net += w * inputValue
+					w := f.layer.Weight[outputIndex][i][j][k]
+					net += w.Get() * inputValue
 				}
 			}
 		}
@@ -139,7 +143,7 @@ func (f *fullConnectContext) Forward(prev core.Context) {
 		for i := range input.Value {
 			for j := range input.Value[i] {
 				for k, inputValue := range input.Value[i][j] {
-					w := f.layer.Weight[outputIndex].Value[i][j][k]
+					w := f.layer.Weight[outputIndex][i][j][k].Get()
 					f.outputToInput[outputIndex].Value[i][j][k] = w * partial
 					f.outputToWeight[outputIndex].Value[i][j][k] = inputValue * partial
 					f.outputToNet[outputIndex] = partial

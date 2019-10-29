@@ -1,17 +1,26 @@
 package weight
 
-import "math"
+import (
+	"github.com/XDean/go-machine-learning/ann/persistent"
+	"math"
+)
+
+func init() {
+	persistent.Register(&Adam{})
+	persistent.Register(AdamFactory{})
+}
 
 type (
 	Adam struct {
 		Value        float64
 		Eta          float64
 		Beta1, Beta2 float64
-		V, S, T      float64
 		Epsilon      float64
+		V, S, T      float64
 	}
 
 	AdamFactory struct {
+		Eta          float64
 		Beta1, Beta2 float64
 		Epsilon      float64
 	}
@@ -25,6 +34,7 @@ const (
 
 func (f AdamFactory) Create() Weight {
 	return &Adam{
+		Eta:     f.Eta,
 		Beta1:   f.Beta1,
 		Beta2:   f.Beta2,
 		Epsilon: f.Epsilon,

@@ -1,6 +1,14 @@
 package weight
 
-import "math"
+import (
+	"github.com/XDean/go-machine-learning/ann/persistent"
+	"math"
+)
+
+func init() {
+	persistent.Register(&AdaGrad{})
+	persistent.Register(AdaGradFactory{})
+}
 
 type (
 	AdaGrad struct {

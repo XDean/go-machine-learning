@@ -1,5 +1,12 @@
 package weight
 
+import "github.com/XDean/go-machine-learning/ann/persistent"
+
+func init() {
+	persistent.Register(&Momentum{})
+	persistent.Register(MomentumFactory{})
+}
+
 type (
 	Momentum struct {
 		Value    float64

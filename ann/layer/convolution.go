@@ -21,9 +21,11 @@ type (
 		Activation    activation.Activation
 		LearningRatio float64
 		WeightInit    weight.Init
+		WeightFactory weight.Factory
 
-		Weight []core.Data // K * F * F * D1
-		Bias   []float64   // K
+		WeightSize core.Size
+		Weight     [][][][]weight.Weight // K * F * F * D1
+		Bias       []weight.Weight       // K
 
 		InputSize core.Size // D1 * W1 * H1
 		// W2 = (W1 + 2P - F) / S + 1
@@ -50,8 +52,8 @@ type (
 		Stride        int // S
 		Padding       int // P
 		Activation    activation.Activation
-		LearningRatio float64
 		WeightInit    weight.Init
+		WeightFactory weight.Factory
 	}
 )
 
@@ -61,8 +63,8 @@ var (
 		KernelSize:    3,
 		Stride:        1,
 		Activation:    activation.Sigmoid{},
-		LearningRatio: 0.1,
 		WeightInit:    &weight.NormalInit{Mean: 0, Std: 0.1},
+		WeightFactory: weight.SGDFactory{Eta: 0.01},
 	}
 )
 
@@ -79,8 +81,8 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 	if config.Activation == nil {
 		config.Activation = ConvolutionDefaultConfig.Activation
 	}
-	if config.LearningRatio == 0 {
-		config.LearningRatio = ConvolutionDefaultConfig.LearningRatio
+	if config.WeightFactory == nil {
+		config.WeightFactory = ConvolutionDefaultConfig.WeightFactory
 	}
 	if config.WeightInit == nil {
 		config.WeightInit = ConvolutionDefaultConfig.WeightInit
@@ -91,39 +93,49 @@ func NewConvolution(config ConvolutionConfig) *Convolution {
 		Stride:        config.Stride,
 		Padding:       config.Padding,
 		Activation:    config.Activation,
-		LearningRatio: config.LearningRatio,
 		WeightInit:    config.WeightInit,
+		WeightFactory: config.WeightFactory,
 	}
 }
 func (f *Convolution) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()
-	weightSize := [3]int{inputSize[0], f.KernelSize, f.KernelSize}
+	f.WeightSize = [3]int{inputSize[0], f.KernelSize, f.KernelSize}
 	f.InputSize = inputSize
 	f.OutputSize = [3]int{
 		f.KernelCount,
 		(inputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 		(inputSize[2]+2*f.Padding-f.KernelSize)/f.Stride + 1,
 	}
-	f.Weight = make([]core.Data, f.KernelCount)
+	f.Weight = make([][][][]weight.Weight, f.KernelCount)
 	for i := range f.Weight {
-		f.Weight[i] = core.NewData(weightSize)
-		f.WeightInit.InitData(f.Weight[i])
+		f.Weight[i] = weight.Create3D(f.WeightFactory, f.WeightInit, f.WeightSize)
 	}
-	f.Bias = make([]float64, f.KernelCount)
+	f.Bias = weight.Create1D(f.WeightFactory, f.WeightInit, f.KernelCount)
 }
 
 func (f *Convolution) Learn(ctxs []core.Context) {
 	size := float64(len(ctxs))
-	for _, v := range ctxs {
-		ctx := v.(*convolutionContext)
-		for n, v := range f.Weight {
-			v.MapIndex(func(i, j, k int, value float64) float64 {
-				return value - f.LearningRatio*ctx.errorToWeight[n].Value[i][j][k]/size
-			})
+	for n := range f.Weight {
+		for i := range f.Weight[n] {
+			for j := range f.Weight[n][i] {
+				for k := range f.Weight[n][i][j] {
+					gradient := 0.0
+					for _, v := range ctxs {
+						ctx := v.(*convolutionContext)
+						gradient += ctx.errorToWeight[n].Value[i][j][k] / size
+					}
+					f.Weight[n][i][j][k].Learn(gradient)
+				}
+			}
 		}
-		for i := range f.Bias {
-			f.Bias[i] -= f.LearningRatio * ctx.errorToBias[i] / size
+	}
+	for i := range f.Bias {
+		gradient := 0.0
+		for _, v := range ctxs {
+			ctx := v.(*convolutionContext)
+			gradient += ctx.errorToBias[i] / size
 		}
+		f.Bias[i].Learn(gradient)
 	}
 }
 
@@ -140,7 +152,7 @@ func (f *Convolution) NewContext() core.Context {
 			for j := range result[i] {
 				result[i][j] = make([]core.Data, f.OutputSize[2])
 				for k := range result[i][j] {
-					result[i][j][k] = core.NewData(f.Weight[0].Size)
+					result[i][j][k] = core.NewData(f.WeightSize)
 				}
 			}
 		}
@@ -161,13 +173,13 @@ func (f *Convolution) NewContext() core.Context {
 func (f *convolutionContext) Forward(prev core.Context) {
 	f.input = prev.GetOutput()
 	f.output.ForEachIndex(func(kernel, x, y int, value float64) {
-		net := f.layer.Bias[kernel]
+		net := f.layer.Bias[kernel].Get()
 		for i := 0; i < f.layer.KernelSize; i++ {
 			for j := 0; j < f.layer.KernelSize; j++ {
 				for z := 0; z < f.layer.InputSize[0]; z++ {
 					inputX := x + i - f.layer.Padding
 					inputY := y + j - f.layer.Padding
-					w := f.layer.Weight[kernel].Value[z][i][j]
+					w := f.layer.Weight[kernel][z][i][j].Get()
 					isPadding := inputX < 0 || inputX >= f.layer.InputSize[1] || inputY < 0 || inputY >= f.layer.InputSize[2]
 					inputValue := 0.0
 					if !isPadding {

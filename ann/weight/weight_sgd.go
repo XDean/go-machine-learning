@@ -1,5 +1,12 @@
 package weight
 
+import "github.com/XDean/go-machine-learning/ann/persistent"
+
+func init() {
+	persistent.Register(&SGD{})
+	persistent.Register(SGDFactory{})
+}
+
 type (
 	SGD struct {
 		Value float64

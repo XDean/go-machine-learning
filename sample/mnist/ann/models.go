@@ -11,7 +11,7 @@ import (
 func init() {
 	// 92.94%
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
-	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	RegisterModel(&core2.Model{
 		Name:      "DNN - Sigmoid - Square Loss - (28 * 28) * 200 * 40 * 10",
@@ -26,7 +26,7 @@ func init() {
 
 	// 95.08%
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
-	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.1}
 	RegisterModel(&core2.Model{
 		Name:      "DNN - ReLU - SoftMax - CrossEntropy - (28 * 28) * 200 * 40 * 10",
@@ -40,11 +40,11 @@ func init() {
 		},
 	})
 
-	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
+	layer.ConvolutionDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
 	layer.ConvolutionDefaultConfig.Activation = activation.ReLU{}
 
-	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 
@@ -69,11 +69,11 @@ func init() {
 		},
 	})
 
-	layer.ConvolutionDefaultConfig.LearningRatio = 0.1
+	layer.ConvolutionDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.ConvolutionDefaultConfig.Activation = activation.Tanh{}
 
-	layer.FullConnectDefaultConfig.LearningRatio = 0.1
+	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.FullConnectDefaultConfig.Activation = activation.Tanh{}
 
