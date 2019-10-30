@@ -18,6 +18,12 @@ type (
 	}
 )
 
+func DefaultSGDFactory() SGDFactory {
+	return SGDFactory{
+		Eta: 0.1,
+	}
+}
+
 func (f SGDFactory) Create() Weight {
 	return &SGD{
 		Value: 0,

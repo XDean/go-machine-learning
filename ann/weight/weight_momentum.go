@@ -20,6 +20,13 @@ type (
 	}
 )
 
+func DefaultMomentumFactory() MomentumFactory {
+	return MomentumFactory{
+		Eta:   0.1,
+		Gamma: 0.5,
+	}
+}
+
 func (f MomentumFactory) Create() Weight {
 	return &Momentum{
 		Value: 0,

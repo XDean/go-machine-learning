@@ -27,6 +27,13 @@ const (
 	AdaGradDefaultEpsilon = 10e-6
 )
 
+func DefaultAdaGradFactory() AdaGradFactory {
+	return AdaGradFactory{
+		Epsilon: AdaGradDefaultEpsilon,
+		Eta:     0.1,
+	}
+}
+
 func (f AdaGradFactory) Create() Weight {
 	return &AdaGrad{
 		Eta:     f.Eta,

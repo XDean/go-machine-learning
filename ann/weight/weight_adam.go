@@ -32,6 +32,15 @@ const (
 	AdamDefaultEpsilon = 10e-8
 )
 
+func DefaultAdamFactory() AdamFactory {
+	return AdamFactory{
+		Epsilon: AdamDefaultEpsilon,
+		Eta:     0.001,
+		Beta1:   AdamDefaultBeta1,
+		Beta2:   AdamDefaultBeta2,
+	}
+}
+
 func (f AdamFactory) Create() Weight {
 	return &Adam{
 		Eta:     f.Eta,
