@@ -14,7 +14,7 @@ type (
 		Name      string
 		Layers    []Layer
 		ErrorFunc LossFunc
-		InputSize [3]int
+		InputSize Size
 	}
 
 	modelContext struct {

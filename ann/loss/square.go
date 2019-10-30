@@ -11,6 +11,10 @@ func init() {
 
 type Square struct{}
 
+func (s Square) Desc() core.Desc {
+	return core.SimpleDesc{Name: "Square"}
+}
+
 func (s Square) CalcLoss(target, actual core.Data) (error float64, partial core.Data) {
 	partial = core.NewData(actual.Size)
 

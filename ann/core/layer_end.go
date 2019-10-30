@@ -53,3 +53,7 @@ func (e *EndLayer) ToResult() Result {
 		TotalError: e.TotalError,
 	}
 }
+
+func (e *EndLayer) Desc() Desc {
+	return SimpleDesc{Name: "End"}
+}

@@ -41,3 +41,7 @@ func (s *StartLayer) GetErrorToInput() Data {
 func (s *StartLayer) GetOutputSize() Size {
 	return s.Input.Size
 }
+
+func (s *StartLayer) Desc() Desc {
+	return SimpleDesc{Name: "Start"}
+}
