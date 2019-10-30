@@ -1,5 +1,7 @@
 package weight
 
+import "github.com/XDean/go-machine-learning/ann/core"
+
 type (
 	Weight interface {
 		Get() float64
@@ -8,6 +10,7 @@ type (
 	}
 
 	Factory interface {
+		core.Describable
 		Create() Weight
 	}
 )

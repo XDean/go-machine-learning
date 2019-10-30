@@ -1,6 +1,9 @@
 package weight
 
-import "github.com/XDean/go-machine-learning/ann/persistent"
+import (
+	"github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
+)
 
 func init() {
 	persistent.Register(&Momentum{})
@@ -24,6 +27,16 @@ func DefaultMomentumFactory() MomentumFactory {
 	return MomentumFactory{
 		Eta:   0.1,
 		Gamma: 0.5,
+	}
+}
+
+func (f MomentumFactory) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Momentum",
+		Params: map[string]interface{}{
+			"η": f.Eta,
+			"γ": f.Gamma,
+		},
 	}
 }
 

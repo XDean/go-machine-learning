@@ -1,6 +1,7 @@
 package weight
 
 import (
+	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math"
 )
@@ -38,6 +39,16 @@ func (f AdaGradFactory) Create() Weight {
 	return &AdaGrad{
 		Eta:     f.Eta,
 		Epsilon: f.Epsilon,
+	}
+}
+
+func (f AdaGradFactory) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "AdaGrad",
+		Params: map[string]interface{}{
+			"η": f.Eta,
+			"ε": f.Epsilon,
+		},
 	}
 }
 

@@ -1,6 +1,7 @@
 package weight
 
 import (
+	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"math"
 )
@@ -47,6 +48,18 @@ func (f AdamFactory) Create() Weight {
 		Beta1:   f.Beta1,
 		Beta2:   f.Beta2,
 		Epsilon: f.Epsilon,
+	}
+}
+
+func (f AdamFactory) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Adam",
+		Params: map[string]interface{}{
+			"β1": f.Beta1,
+			"β2": f.Beta2,
+			"η":  f.Eta,
+			"ε":  f.Epsilon,
+		},
 	}
 }
 

@@ -1,6 +1,9 @@
 package weight
 
-import "github.com/XDean/go-machine-learning/ann/persistent"
+import (
+	"github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/persistent"
+)
 
 func init() {
 	persistent.Register(&SGD{})
@@ -28,6 +31,15 @@ func (f SGDFactory) Create() Weight {
 	return &SGD{
 		Value: 0,
 		Eta:   f.Eta,
+	}
+}
+
+func (f SGDFactory) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "SGD",
+		Params: map[string]interface{}{
+			"η": f.Eta,
+		},
 	}
 }
 
