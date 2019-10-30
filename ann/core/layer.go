@@ -2,6 +2,7 @@ package core
 
 type (
 	Layer interface {
+		Describable
 		Init(prev, next Layer)
 		Learn(ctxs []Context)
 		NewContext() Context
