@@ -230,7 +230,7 @@ func (m *Model) Brief() string {
 	sb := strings.Builder{}
 	if m.Name != "" {
 		sb.WriteString(m.Name)
-		sb.WriteString(" = ")
+		sb.WriteString(" => ")
 	}
 	sb.WriteString(m.InputSize.Desc().Brief())
 	sb.WriteString(" -> ")
@@ -243,8 +243,8 @@ func (m *Model) Brief() string {
 }
 
 func (m *Model) Full() string {
-	sb := strings.Builder{}
-	sb.WriteRune('{')
+	sb := &strings.Builder{}
+	sb.WriteString("{\n")
 	if m.Name != "" {
 		sb.WriteRune('\t')
 		sb.WriteString("Name: ")
@@ -254,28 +254,19 @@ func (m *Model) Full() string {
 	sb.WriteString("\t")
 	inputLabel := "Input: "
 	sb.WriteString(inputLabel)
-	writeWithPrefix(sb, m.InputSize.Desc().Full(), "\t"+strings.Repeat(" ", len(inputLabel)))
+	util.WriteWithPrefix(sb, m.InputSize.Desc().Full(), "\t"+strings.Repeat(" ", len(inputLabel)))
 	sb.WriteString("\n\tLayers: [\n")
 	for i, l := range m.Layers {
 		index := strconv.Itoa(i + 1)
 		sb.WriteString(fmt.Sprintf("\t\t%s. ", index))
-		writeWithPrefix(sb, l.Desc().Full(), "\t\t"+strings.Repeat(" ", len(index)+2))
+		util.WriteWithPrefix(sb, l.Desc().Full(), "\t\t"+strings.Repeat(" ", len(index)+2))
 		sb.WriteString("\n")
 	}
+	sb.WriteString("\t]\n")
 	sb.WriteString("\t")
 	lossLabel := "Loss Function: "
 	sb.WriteString(lossLabel)
-	writeWithPrefix(sb, m.ErrorFunc.Desc().Full(), "\t"+strings.Repeat(" ", len(lossLabel)))
+	util.WriteWithPrefix(sb, m.ErrorFunc.Desc().Full(), "\t"+strings.Repeat(" ", len(lossLabel)))
 	sb.WriteString("\n}")
 	return sb.String()
-}
-
-func writeWithPrefix(sb strings.Builder, full string, prefix string) {
-	for i, line := range strings.Split(full, "\n") {
-		if i != 0 {
-			sb.WriteString(prefix)
-		}
-		sb.WriteString(line)
-		sb.WriteRune('\n')
-	}
 }

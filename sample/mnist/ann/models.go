@@ -14,7 +14,6 @@ func init() {
 	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	RegisterModel(&core2.Model{
-		Name:      "DNN - Sigmoid - Square Loss - (28 * 28) * 200 * 40 * 10",
 		ErrorFunc: loss.Square{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []core2.Layer{
@@ -29,7 +28,6 @@ func init() {
 	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.1}
 	RegisterModel(&core2.Model{
-		Name:      "DNN - ReLU - SoftMax - CrossEntropy - (28 * 28) * 200 * 40 * 10",
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []core2.Layer{
@@ -50,7 +48,6 @@ func init() {
 
 	// 93.46%
 	RegisterModel(&core2.Model{
-		Name:      "CNN AS DNN - ReLU - SoftMax - CrossEntropy - (28 * 28) * 200 * 40 * 10",
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []core2.Layer{
@@ -78,7 +75,7 @@ func init() {
 	layer.FullConnectDefaultConfig.Activation = activation.Tanh{}
 
 	RegisterModel(&core2.Model{
-		Name:      "CNN - LeNet-5",
+		Name:      "LeNet-5",
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
 		Layers: []core2.Layer{

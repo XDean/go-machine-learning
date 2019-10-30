@@ -73,6 +73,13 @@ func main() {
 					Name:   "show",
 					Usage:  "Show available models",
 					Action: func(*cli.Context) error { return ctx.Show() },
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:        "full",
+							Usage:       "Show Full Model Description",
+							Destination: &ctx.fullDesc,
+						},
+					},
 				},
 			},
 		},
@@ -102,4 +109,5 @@ var models = make([]*core2.Model, 0)
 
 func RegisterModel(m *core2.Model) {
 	models = append(models, m)
+	m.Init()
 }

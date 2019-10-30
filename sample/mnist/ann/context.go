@@ -7,10 +7,12 @@ import (
 	"github.com/XDean/go-machine-learning/ann/util"
 	"github.com/XDean/go-machine-learning/sample/mnist"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 type Context struct {
+	fullDesc bool
 	loadPath string
 	savePath string
 	dataPath string
@@ -21,7 +23,17 @@ type Context struct {
 
 func (c Context) Show() error {
 	for i, v := range models {
-		fmt.Printf("%d. %s\n", i+1, v.Name)
+		s := ""
+		if c.fullDesc {
+			s = v.Full()
+		} else {
+			s = v.Brief()
+		}
+		sb := &strings.Builder{}
+		index := fmt.Sprintf("%d. ", i+1)
+		sb.WriteString(index)
+		util.WriteWithPrefix(sb, s, strings.Repeat(" ", len(index)))
+		fmt.Println(sb.String())
 	}
 	return nil
 }
@@ -93,7 +105,6 @@ func (c Context) checkData() error {
 func (c Context) loadModel() (result *core2.Model, err error) {
 	if c.modelN > 0 && c.modelN <= len(models) {
 		result = models[c.modelN-1]
-		result.Init()
 		fmt.Printf("New model: %s\n", result.Name)
 	}
 	if c.loadPath != "" {

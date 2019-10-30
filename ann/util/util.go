@@ -1,5 +1,7 @@
 package util
 
+import "strings"
+
 type noerr struct {
 	error
 }
@@ -16,5 +18,18 @@ func RecoverNoError(err *error) {
 func NoError(err error) {
 	if err != nil {
 		panic(noerr{err})
+	}
+}
+
+func WriteWithPrefix(sb *strings.Builder, full string, prefix string) {
+	split := strings.Split(full, "\n")
+	for i, line := range split {
+		if i != 0 {
+			sb.WriteString(prefix)
+		}
+		sb.WriteString(line)
+		if i != len(split)-1 {
+			sb.WriteRune('\n')
+		}
 	}
 }

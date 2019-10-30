@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -29,8 +30,10 @@ func (s SimpleDesc) Brief() string {
 		core := s.Core
 		if d, ok := s.Core.(Describable); ok {
 			core = d.Desc().Brief()
+		} else if d, ok := s.Core.(fmt.Stringer); ok {
+			core = d.String()
 		}
-		return fmt.Sprintf("%s (%s)", s.Name, core)
+		return fmt.Sprintf("%s (%v)", s.Name, core)
 	}
 }
 
@@ -43,22 +46,41 @@ func (s SimpleDesc) Full() string {
 		core := s.Core
 		if d, ok := s.Core.(Describable); ok {
 			core = d.Desc().Brief()
+		} else if d, ok := s.Core.(fmt.Stringer); ok {
+			core = d.String()
 		}
-		sb.WriteString(fmt.Sprintf("(%s)", core))
+		sb.WriteString(fmt.Sprintf("(%v)", core))
 	}
-	if len(s.Params) != 0 {
-		for k, v := range s.Params {
+	paramLen := len(s.Params)
+	if paramLen != 0 {
+		i := 0
+
+		keys := make([]string, paramLen)
+		for k := range s.Params {
+			keys[i] = k
+			i++
+		}
+		sort.Strings(keys)
+
+		sb.WriteString(" [")
+		for index, k := range keys {
+			v := s.Params[k]
 			sb.WriteString(k)
 			sb.WriteRune('=')
 			if d, ok := v.(Describable); ok {
 				sb.WriteRune('{')
 				sb.WriteString(d.Desc().Full())
 				sb.WriteRune('}')
+			} else if d, ok := s.Core.(fmt.Stringer); ok {
+				sb.WriteString(d.String())
 			} else {
-				sb.WriteString(fmt.Sprintf("%s", v))
+				sb.WriteString(fmt.Sprintf("%v", v))
 			}
-			sb.WriteString(", ")
+			if index != paramLen-1 {
+				sb.WriteString(", ")
+			}
 		}
+		sb.WriteString("]")
 	}
 	return sb.String()
 }
