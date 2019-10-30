@@ -74,3 +74,10 @@ func (f *activationContext) GetErrorToInput() core.Data {
 func (f *Activation) GetOutputSize() core.Size {
 	return f.InputSize
 }
+
+func (f *Activation) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Activation",
+		Core: f.Activation,
+	}
+}

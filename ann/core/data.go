@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 type (
 	Size [3]int
 	Data struct {
@@ -7,6 +9,12 @@ type (
 		Size  Size
 	}
 )
+
+func (s Size) Desc() Desc {
+	return SimpleDesc{
+		Name: fmt.Sprintf("%d * %d * %d", s[0], s[1], s[2]),
+	}
+}
 
 var EMPTY_DATA = NewData([3]int{0, 0, 0})
 

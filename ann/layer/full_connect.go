@@ -177,3 +177,14 @@ func (f *fullConnectContext) GetErrorToInput() core.Data {
 	}
 	return result
 }
+
+func (f *FullConnect) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Full Connect",
+		Core: f.Size,
+		Params: map[string]interface{}{
+			"Activation": f.Activation,
+			"Weight":     f.WeightFactory,
+		},
+	}
+}

@@ -18,10 +18,10 @@ type (
 		Stride  int // S
 		Padding int // P
 
-		InputSize [3]int // D1 * W1 * H1
+		InputSize core.Size // D1 * W1 * H1
 		// W2 = (W1 + 2P - F) / S + 1
 		// H2 = (H1 + 2P - F) / S + 1
-		OutputSize [3]int // D1 * W2 * H2
+		OutputSize core.Size // D1 * W2 * H2
 	}
 
 	poolingContext struct {
@@ -186,4 +186,29 @@ func (f *poolingContext) GetErrorToInput() core.Data {
 
 func (f *Pooling) GetOutputSize() core.Size {
 	return f.OutputSize
+}
+
+func (t PoolingType) String() string {
+	switch t {
+	case POOL_SUM:
+		return "SUM"
+	case POOL_AVG:
+		return "AVG"
+	case POOL_MAX:
+		return "MAX"
+	default:
+		return "Unknown Pool Type"
+	}
+}
+
+func (f *Pooling) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Pooling " + f.Type.String(),
+		Core: f.OutputSize,
+		Params: map[string]interface{}{
+			"Weight":  f.Size,
+			"Stride":  f.Stride,
+			"Padding": f.Padding,
+		},
+	}
 }

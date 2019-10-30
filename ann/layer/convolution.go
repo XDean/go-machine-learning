@@ -248,3 +248,18 @@ func (f *convolutionContext) GetErrorToInput() core.Data {
 func (f *Convolution) GetOutputSize() core.Size {
 	return f.OutputSize
 }
+
+func (f *Convolution) Desc() core.Desc {
+	return core.SimpleDesc{
+		Name: "Convolution",
+		Core: f.OutputSize,
+		Params: map[string]interface{}{
+			"Kernel":     f.KernelCount,
+			"Size":       f.KernelSize,
+			"Stride":     f.Stride,
+			"Padding":    f.Padding,
+			"Activation": f.Activation,
+			"Weight":     f.WeightFactory,
+		},
+	}
+}

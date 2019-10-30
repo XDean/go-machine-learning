@@ -1,8 +1,8 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type (
@@ -17,22 +17,48 @@ type (
 
 	SimpleDesc struct {
 		Name   string
-		Core   string
+		Core   interface{}
 		Params map[string]interface{}
 	}
 )
 
 func (s SimpleDesc) Brief() string {
-	if s.Core == "" {
+	if s.Core == nil {
 		return s.Name
+	} else {
+		core := s.Core
+		if d, ok := s.Core.(Describable); ok {
+			core = d.Desc().Brief()
+		}
+		return fmt.Sprintf("%s (%s)", s.Name, core)
 	}
-	return fmt.Sprintf("%s (%s)", s.Name, s.Core)
 }
 
 func (s SimpleDesc) Full() string {
-	if len(s.Params) == 0 {
-		return s.Brief()
+	sb := strings.Builder{}
+
+	sb.WriteString(s.Name)
+
+	if s.Core != nil {
+		core := s.Core
+		if d, ok := s.Core.(Describable); ok {
+			core = d.Desc().Brief()
+		}
+		sb.WriteString(fmt.Sprintf("(%s)", core))
 	}
-	bytes, _ := json.MarshalIndent(s.Params, "", " ")
-	return s.Brief() + string(bytes)
+	if len(s.Params) != 0 {
+		for k, v := range s.Params {
+			sb.WriteString(k)
+			sb.WriteRune('=')
+			if d, ok := v.(Describable); ok {
+				sb.WriteRune('{')
+				sb.WriteString(d.Desc().Full())
+				sb.WriteRune('}')
+			} else {
+				sb.WriteString(fmt.Sprintf("%s", v))
+			}
+			sb.WriteString(", ")
+		}
+	}
+	return sb.String()
 }

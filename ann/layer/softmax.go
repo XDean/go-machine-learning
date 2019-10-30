@@ -88,3 +88,7 @@ func (f *softMaxContext) GetErrorToInput() core.Data {
 func (f *SoftMax) GetOutputSize() core.Size {
 	return f.Size
 }
+
+func (f *SoftMax) Desc() core.Desc {
+	return core.SimpleDesc{Name: "SoftMax"}
+}
