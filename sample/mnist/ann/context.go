@@ -103,9 +103,14 @@ func (c Context) checkData() error {
 }
 
 func (c Context) loadModel() (result *core2.Model, err error) {
+	defer func() {
+		if err == nil {
+			fmt.Println(result.Full())
+		}
+	}()
 	if c.modelN > 0 && c.modelN <= len(models) {
 		result = models[c.modelN-1]
-		fmt.Printf("New model: %s\n", result.Name)
+		fmt.Printf("Use built-in model: %s\n", result.Name)
 	}
 	if c.loadPath != "" {
 		fmt.Printf("Load model from %s\n", c.loadPath)

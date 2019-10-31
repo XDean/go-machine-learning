@@ -206,7 +206,7 @@ func (f *Pooling) Desc() core.Desc {
 		Name: "Pooling " + f.Type.String(),
 		Core: f.OutputSize,
 		Params: map[string]interface{}{
-			"Weight":  f.Size,
+			"Size":    f.Size,
 			"Stride":  f.Stride,
 			"Padding": f.Padding,
 		},
