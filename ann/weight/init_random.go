@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	persistent.Register(&RandomInit{})
+	persistent.Register(RandomInit{})
 }
 
 type RandomInit struct {
@@ -14,7 +14,7 @@ type RandomInit struct {
 	Range        float64
 }
 
-func (r *RandomInit) Generate(count int) func() float64 {
+func (r RandomInit) Generate(count int) func() float64 {
 	return func() float64 {
 		v := rand.Float64()
 		if !r.PositiveOnly {
