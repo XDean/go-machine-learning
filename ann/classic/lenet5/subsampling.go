@@ -36,35 +36,7 @@ type (
 		outputToWeight core.Data     // output
 		outputToInput  [][]core.Data // F * F * output
 	}
-
-	SubSamplingConfig struct {
-		Size    int
-		Padding int
-		Stride  int
-	}
 )
-
-var (
-	SubSamplingDefaultConfig = SubSamplingConfig{
-		Size:    2,
-		Padding: 0,
-		Stride:  2,
-	}
-)
-
-func NewSubSampling(config SubSamplingConfig) *SubSampling {
-	if config.Size == 0 {
-		config.Size = SubSamplingDefaultConfig.Size
-	}
-	if config.Stride == 0 {
-		config.Stride = SubSamplingDefaultConfig.Stride
-	}
-	return &SubSampling{
-		Size:    config.Size,
-		Stride:  config.Stride,
-		Padding: config.Padding,
-	}
-}
 
 func (f *SubSampling) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()

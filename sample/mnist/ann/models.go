@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/XDean/go-machine-learning/ann/activation"
-	core2 "github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/layer"
 	"github.com/XDean/go-machine-learning/ann/loss"
 	"github.com/XDean/go-machine-learning/ann/weight"
@@ -13,10 +13,10 @@ func init() {
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
-	RegisterModel(&core2.Model{
+	RegisterModel(&core.Model{
 		ErrorFunc: loss.Square{},
 		InputSize: [3]int{1, 28, 28},
-		Layers: []core2.Layer{
+		Layers: []core.Layer{
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 200}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 40}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
@@ -27,10 +27,10 @@ func init() {
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
 	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.1}
-	RegisterModel(&core2.Model{
+	RegisterModel(&core.Model{
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
-		Layers: []core2.Layer{
+		Layers: []core.Layer{
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 200}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 40}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),
@@ -47,10 +47,10 @@ func init() {
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 
 	// 93.46%
-	RegisterModel(&core2.Model{
+	RegisterModel(&core.Model{
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
-		Layers: []core2.Layer{
+		Layers: []core.Layer{
 			layer.NewConvolution(layer.ConvolutionConfig{
 				KernelCount: 200,
 				KernelSize:  28,
@@ -74,11 +74,11 @@ func init() {
 	layer.FullConnectDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
 	layer.FullConnectDefaultConfig.Activation = activation.Tanh{}
 
-	RegisterModel(&core2.Model{
+	RegisterModel(&core.Model{
 		Name:      "LeNet-5",
 		ErrorFunc: loss.CrossEntropy{},
 		InputSize: [3]int{1, 28, 28},
-		Layers: []core2.Layer{
+		Layers: []core.Layer{
 			layer.NewConvolution(layer.ConvolutionConfig{
 				KernelCount: 6,
 				KernelSize:  5,
@@ -101,7 +101,7 @@ func init() {
 				Size:    2,
 				Stride:  2,
 				Padding: 0,
-			}), // 6 * 5 * 5
+			}), // 16 * 5 * 5
 			layer.NewActivation(activation.Sigmoid{}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 120}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 84}),

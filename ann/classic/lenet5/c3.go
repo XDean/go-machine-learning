@@ -1,24 +1,36 @@
-package layer
+package lenet5
 
 import (
-	"github.com/XDean/go-machine-learning/ann/activation"
 	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/persistent"
 	"github.com/XDean/go-machine-learning/ann/weight"
 )
 
 func init() {
-	persistent.Register(new(Convolution))
+	persistent.Register(new(C3))
+}
+
+var C3Config = struct {
+	D1, K, F, S, P int
+	Table          [6][16]int
+}{
+	D1: 6,
+	K:  16,
+	F:  5,
+	S:  1,
+	P:  0,
+	Table: [6][16]int{
+		{1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1},
+		{1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1},
+		{1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1},
+		{0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1},
+		{0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1},
+		{0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1},
+	},
 }
 
 type (
-	Convolution struct {
-		KernelCount int // K
-		KernelSize  int // F
-		Stride      int // S
-		Padding     int // P
-
-		Activation    activation.Activation
+	C3 struct {
 		WeightInit    weight.Init
 		WeightFactory weight.Factory
 
@@ -33,8 +45,8 @@ type (
 		OutputSize core.Size // K * W2 * H2
 	}
 
-	convolutionContext struct {
-		layer         *Convolution
+	c3Context struct {
+		layer         *C3
 		input         core.Data   // D1 * W1 * H1
 		output        core.Data   // K * W2 * H2
 		errorToOutput core.Data   // output, ∂E / ∂a
@@ -44,75 +56,25 @@ type (
 		netToInput    [][][]core.Data // output * F * F * D1, ∂a / ∂i, no active partial
 		netToWeight   [][][]core.Data // output * F * F * D1, ∂a / ∂w, no active partial
 	}
-
-	ConvolutionConfig struct {
-		KernelCount   int // K
-		KernelSize    int // F
-		Stride        int // S
-		Padding       int // P
-		Activation    activation.Activation
-		WeightInit    weight.Init
-		WeightFactory weight.Factory
-	}
 )
 
-var (
-	ConvolutionDefaultConfig = ConvolutionConfig{
-		KernelCount:   1,
-		KernelSize:    3,
-		Stride:        1,
-		Activation:    activation.Sigmoid{},
-		WeightInit:    &weight.NormalInit{Mean: 0, Std: 0.1},
-		WeightFactory: weight.SGDFactory{Eta: 0.01},
-	}
-)
-
-func NewConvolution(config ConvolutionConfig) *Convolution {
-	if config.KernelCount == 0 {
-		config.KernelCount = ConvolutionDefaultConfig.KernelCount
-	}
-	if config.KernelSize == 0 {
-		config.KernelSize = ConvolutionDefaultConfig.KernelSize
-	}
-	if config.Stride == 0 {
-		config.Stride = ConvolutionDefaultConfig.Stride
-	}
-	if config.Activation == nil {
-		config.Activation = ConvolutionDefaultConfig.Activation
-	}
-	if config.WeightFactory == nil {
-		config.WeightFactory = ConvolutionDefaultConfig.WeightFactory
-	}
-	if config.WeightInit == nil {
-		config.WeightInit = ConvolutionDefaultConfig.WeightInit
-	}
-	return &Convolution{
-		KernelCount:   config.KernelCount,
-		KernelSize:    config.KernelSize,
-		Stride:        config.Stride,
-		Padding:       config.Padding,
-		Activation:    config.Activation,
-		WeightInit:    config.WeightInit,
-		WeightFactory: config.WeightFactory,
-	}
-}
-func (f *Convolution) Init(prev, next core.Layer) {
+func (f *C3) Init(prev, next core.Layer) {
 	inputSize := prev.GetOutputSize()
-	f.WeightSize = [3]int{inputSize[0], f.KernelSize, f.KernelSize}
+	f.WeightSize = [3]int{inputSize[0], C3Config.F, C3Config.F}
 	f.InputSize = inputSize
 	f.OutputSize = [3]int{
-		f.KernelCount,
-		(inputSize[1]+2*f.Padding-f.KernelSize)/f.Stride + 1,
-		(inputSize[2]+2*f.Padding-f.KernelSize)/f.Stride + 1,
+		C3Config.K,
+		(inputSize[1]+2*C3Config.P-C3Config.F)/C3Config.S + 1,
+		(inputSize[2]+2*C3Config.P-C3Config.F)/C3Config.S + 1,
 	}
-	f.Weight = make([][][][]weight.Weight, f.KernelCount)
+	f.Weight = make([][][][]weight.Weight, C3Config.K)
 	for i := range f.Weight {
 		f.Weight[i] = weight.Create3D(f.WeightFactory, f.WeightInit, f.WeightSize)
 	}
-	f.Bias = weight.Create1D(f.WeightFactory, f.WeightInit, f.KernelCount)
+	f.Bias = weight.Create1D(f.WeightFactory, f.WeightInit, C3Config.K)
 }
 
-func (f *Convolution) Learn(ctxs []core.Context) {
+func (f *C3) Learn(ctxs []core.Context) {
 	size := float64(len(ctxs))
 	for n := range f.Weight {
 		for i := range f.Weight[n] {
@@ -120,7 +82,7 @@ func (f *Convolution) Learn(ctxs []core.Context) {
 				for k := range f.Weight[n][i][j] {
 					gradient := 0.0
 					for _, v := range ctxs {
-						ctx := v.(*convolutionContext)
+						ctx := v.(*c3Context)
 						gradient += ctx.errorToWeight[n].Value[i][j][k] / size
 					}
 					f.Weight[n][i][j][k].Learn(gradient)
@@ -131,16 +93,16 @@ func (f *Convolution) Learn(ctxs []core.Context) {
 	for i := range f.Bias {
 		gradient := 0.0
 		for _, v := range ctxs {
-			ctx := v.(*convolutionContext)
+			ctx := v.(*c3Context)
 			gradient += ctx.errorToBias[i] / size
 		}
 		f.Bias[i].Learn(gradient)
 	}
 }
 
-func (f *Convolution) NewContext() core.Context {
-	errorToWeight := make([]core.Data, f.KernelCount)
-	weightSize := [3]int{f.InputSize[0], f.KernelSize, f.KernelSize}
+func (f *C3) NewContext() core.Context {
+	errorToWeight := make([]core.Data, C3Config.K)
+	weightSize := [3]int{f.InputSize[0], C3Config.F, C3Config.F}
 	for i := range errorToWeight {
 		errorToWeight[i] = core.NewData(weightSize)
 	}
@@ -157,27 +119,30 @@ func (f *Convolution) NewContext() core.Context {
 		}
 		return result
 	}
-	return &convolutionContext{
+	return &c3Context{
 		layer:         f,
 		output:        core.NewData(f.OutputSize),
 		errorToOutput: core.NewData(f.OutputSize),
 		errorToWeight: errorToWeight,
-		errorToBias:   make([]float64, f.KernelCount),
+		errorToBias:   make([]float64, C3Config.K),
 		netToWeight:   newO2W(),
 		netToInput:    newO2W(),
 		outputToNet:   core.NewData(f.OutputSize),
 	}
 }
 
-func (f *convolutionContext) Forward(prev core.Context) {
+func (f *c3Context) Forward(prev core.Context) {
 	f.input = prev.GetOutput()
 	f.output.ForEachIndex(func(kernel, x, y int, value float64) {
 		net := f.layer.Bias[kernel].Get()
-		for i := 0; i < f.layer.KernelSize; i++ {
-			for j := 0; j < f.layer.KernelSize; j++ {
-				for z := 0; z < f.layer.InputSize[0]; z++ {
-					inputX := x + i - f.layer.Padding
-					inputY := y + j - f.layer.Padding
+		for z := 0; z < f.layer.InputSize[0]; z++ {
+			if C3Config.Table[z][kernel] == 0 {
+				continue
+			}
+			for i := 0; i < C3Config.F; i++ {
+				for j := 0; j < C3Config.F; j++ {
+					inputX := x + i - C3Config.P
+					inputY := y + j - C3Config.P
 					w := f.layer.Weight[kernel][z][i][j].Get()
 					isPadding := inputX < 0 || inputX >= f.layer.InputSize[1] || inputY < 0 || inputY >= f.layer.InputSize[2]
 					inputValue := 0.0
@@ -192,13 +157,13 @@ func (f *convolutionContext) Forward(prev core.Context) {
 				}
 			}
 		}
-		output, partial := f.layer.Activation.Active(net)
+		output, partial := Activation{}.Active(net)
 		f.output.Value[kernel][x][y] = output
 		f.outputToNet.Value[kernel][x][y] = partial
 	})
 }
 
-func (f *convolutionContext) Backward(next core.Context) {
+func (f *c3Context) Backward(next core.Context) {
 	f.errorToOutput = next.GetErrorToInput()
 	for kernel, v := range f.errorToWeight {
 		v.MapIndex(func(i, j, k int, value float64) float64 {
@@ -220,18 +185,21 @@ func (f *convolutionContext) Backward(next core.Context) {
 	}
 }
 
-func (f *convolutionContext) GetOutput() core.Data {
+func (f *c3Context) GetOutput() core.Data {
 	return f.output
 }
 
-func (f *convolutionContext) GetErrorToInput() core.Data {
+func (f *c3Context) GetErrorToInput() core.Data {
 	result := core.NewData(f.layer.InputSize)
 	f.errorToOutput.ForEachIndex(func(kernel, x, y int, v float64) {
-		for i := 0; i < f.layer.KernelSize; i++ {
-			for j := 0; j < f.layer.KernelSize; j++ {
-				for z := 0; z < f.layer.InputSize[0]; z++ {
-					inputX := x + i - f.layer.Padding
-					inputY := y + j - f.layer.Padding
+		for z := 0; z < f.layer.InputSize[0]; z++ {
+			if C3Config.Table[z][kernel] == 0 {
+				continue
+			}
+			for i := 0; i < C3Config.F; i++ {
+				for j := 0; j < C3Config.F; j++ {
+					inputX := x + i - C3Config.P
+					inputY := y + j - C3Config.P
 					isPadding := inputX < 0 || inputX >= f.layer.InputSize[1] || inputY < 0 || inputY >= f.layer.InputSize[2]
 					if isPadding {
 						continue
@@ -244,20 +212,20 @@ func (f *convolutionContext) GetErrorToInput() core.Data {
 	return result
 }
 
-func (f *Convolution) GetOutputSize() core.Size {
+func (f *C3) GetOutputSize() core.Size {
 	return f.OutputSize
 }
 
-func (f *Convolution) Desc() core.Desc {
+func (f *C3) Desc() core.Desc {
 	return core.SimpleDesc{
 		Name: "Convolution",
 		Core: f.OutputSize,
 		Params: map[string]interface{}{
-			"Kernel":     f.KernelCount,
-			"Size":       f.KernelSize,
-			"Stride":     f.Stride,
-			"Padding":    f.Padding,
-			"Activation": f.Activation,
+			"Kernel":     C3Config.K,
+			"Size":       C3Config.F,
+			"Stride":     C3Config.S,
+			"Padding":    C3Config.P,
+			"Activation": Activation{},
 			"Weight":     f.WeightFactory,
 		},
 	}
