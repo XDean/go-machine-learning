@@ -8,5 +8,6 @@ import (
 
 func main() {
 	rand.Seed(time.Now().Unix())
+	registerModels()
 	mnist_ann.Main()
 }
