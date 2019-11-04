@@ -4,13 +4,12 @@ import (
 	"github.com/XDean/go-machine-learning/ann/activation"
 	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/layer"
-	"github.com/XDean/go-machine-learning/ann/loss"
 	"github.com/XDean/go-machine-learning/ann/weight"
 )
 
 var Model = &core.Model{
 	Name:      "LeNet-5",
-	ErrorFunc: loss.CrossEntropy{},
+	ErrorFunc: &Loss{},
 	InputSize: [3]int{1, 28, 28},
 	Layers: []core.Layer{
 		layer.NewConvolution(layer.ConvolutionConfig{
