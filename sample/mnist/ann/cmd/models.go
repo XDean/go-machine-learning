@@ -6,9 +6,10 @@ import (
 	"github.com/XDean/go-machine-learning/ann/layer"
 	"github.com/XDean/go-machine-learning/ann/loss"
 	"github.com/XDean/go-machine-learning/ann/weight"
+	. "github.com/XDean/go-machine-learning/sample/mnist/ann"
 )
 
-func init() {
+func registerModels() {
 	// 92.94%
 	layer.FullConnectDefaultConfig.Activation = activation.Sigmoid{}
 	layer.FullConnectDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
@@ -21,7 +22,7 @@ func init() {
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 40}),
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
 		},
-	})
+	}, MaxLabel)
 
 	// 95.08%
 	layer.FullConnectDefaultConfig.Activation = activation.ReLU{}
@@ -36,7 +37,7 @@ func init() {
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),
 			layer.NewSoftMax(),
 		},
-	})
+	}, MaxLabel)
 
 	layer.ConvolutionDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 0.01}
@@ -64,7 +65,7 @@ func init() {
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10}),
 			layer.NewSoftMax(),
 		},
-	})
+	}, MaxLabel)
 
 	layer.ConvolutionDefaultConfig.WeightFactory = weight.SGDFactory{Eta: 0.1}
 	layer.ConvolutionDefaultConfig.WeightInit = &weight.RandomInit{Range: 1}
@@ -108,5 +109,5 @@ func init() {
 			layer.NewFullConnect(layer.FullConnectConfig{Size: 10, Activation: activation.NoOp{}}),
 			layer.NewSoftMax(),
 		},
-	})
+	}, MaxLabel)
 }

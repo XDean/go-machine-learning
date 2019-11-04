@@ -1,9 +1,9 @@
-package main
+package mnist_ann
 
 import (
 	"errors"
 	"fmt"
-	core2 "github.com/XDean/go-machine-learning/ann/core"
+	"github.com/XDean/go-machine-learning/ann/core"
 	"github.com/XDean/go-machine-learning/ann/util"
 	"github.com/XDean/go-machine-learning/sample/mnist"
 	"path/filepath"
@@ -102,7 +102,7 @@ func (c Context) checkData() error {
 	return nil
 }
 
-func (c Context) loadModel() (result *core2.Model, err error) {
+func (c Context) loadModel() (result *core.Model, err error) {
 	defer func() {
 		if err == nil {
 			fmt.Println(result.Full())
@@ -114,7 +114,7 @@ func (c Context) loadModel() (result *core2.Model, err error) {
 	}
 	if c.loadPath != "" {
 		fmt.Printf("Load model from %s\n", c.loadPath)
-		result = new(core2.Model)
+		result = new(core.Model)
 		err = result.LoadFromFile(c.loadPath)
 	}
 	if result == nil {
@@ -123,7 +123,7 @@ func (c Context) loadModel() (result *core2.Model, err error) {
 	return
 }
 
-func (c Context) saveModel(m *core2.Model) (err error) {
+func (c Context) saveModel(m *core.Model) (err error) {
 	if c.loadPath == "" {
 		c.loadPath = c.savePath
 	}

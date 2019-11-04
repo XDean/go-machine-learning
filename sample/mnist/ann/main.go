@@ -1,13 +1,10 @@
-package main
+package mnist_ann
 
 import (
 	"fmt"
-	core2 "github.com/XDean/go-machine-learning/ann/core"
 	"github.com/urfave/cli"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 )
 
 const (
@@ -17,8 +14,7 @@ const (
 	train_label = "train-labels.idx1-ubyte"
 )
 
-func main() {
-	rand.Seed(time.Now().Unix())
+func Main() {
 	app := cli.NewApp()
 
 	app.Name = "XDean Go ANN Sample"
@@ -103,11 +99,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-var models = make([]*core2.Model, 0)
-
-func RegisterModel(m *core2.Model) {
-	models = append(models, m)
-	m.Init()
 }

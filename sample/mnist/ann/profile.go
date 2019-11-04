@@ -1,4 +1,4 @@
-package main
+package mnist_ann
 
 type Profile struct {
 	Total int

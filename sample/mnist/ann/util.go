@@ -1,4 +1,4 @@
-package main
+package mnist_ann
 
 import (
 	"github.com/XDean/go-machine-learning/ann/core"
@@ -32,6 +32,26 @@ func predictFromResult(r core.Result) int {
 	max := 0
 	for i, v := range r.Output.Value[0][0] {
 		if v > r.Output.Value[0][0][max] {
+			max = i
+		}
+	}
+	return max
+}
+
+func MaxLabel(r core.Data) int {
+	max := 0
+	for i, v := range r.Value[0][0] {
+		if v > r.Value[0][0][max] {
+			max = i
+		}
+	}
+	return max
+}
+
+func MinLabel(r core.Data) int {
+	max := 0
+	for i, v := range r.Value[0][0] {
+		if v > r.Value[0][0][max] {
 			max = i
 		}
 	}
